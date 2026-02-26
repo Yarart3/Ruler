@@ -3,45 +3,29 @@ package com.example.ruler
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.*
+import com.example.ruler.ui.screens.HomeScreen
+import com.example.ruler.ui.screens.SplashScreen
 import com.example.ruler.ui.theme.RulerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             RulerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                // variable que controla quina pantalla es veu
+                var showSplash by remember { mutableStateOf(true) }
+
+                if (showSplash) {
+                    SplashScreen(onSplashFinished = { showSplash = false })
+                } else {
+                    HomeScreen(
+                        onTripClick = { },
+                        onNavigateToPreferences = { },
+                        onNavigateToAbout = { }
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    RulerTheme {
-        Greeting("Android")
     }
 }
