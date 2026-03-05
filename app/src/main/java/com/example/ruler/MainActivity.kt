@@ -26,28 +26,54 @@ class MainActivity : ComponentActivity() {
                         },
                         onNavigateToGallery = { currentScreen = "gallery" },
                         onNavigateToPreferences = { currentScreen = "preferences" },
-                        onNavigateToAbout = { currentScreen = "about" }
+                        onNavigateToAbout = { currentScreen = "about" },
+                        onNavigateToProfile = { currentScreen = "profile" }
                     )
                     "tripDetail" -> TripDetailScreen(
                         tripId = selectedTripId,
                         onNavigateBack = { currentScreen = "home" },
-                        onNavigateToGallery = { currentScreen = "gallery" }
+                        onNavigateToHome = { currentScreen = "home" },
+                        onNavigateToGallery = { currentScreen = "gallery" },
+                        onNavigateToPreferences = { currentScreen = "preferences" },
+                        onNavigateToAbout = { currentScreen = "about" },
+                        onNavigateToProfile = { currentScreen = "profile" }
                     )
                     "gallery" -> GalleryScreen(
                         onNavigateBack = { currentScreen = "home" },
-                        onNavigateToTrips = { currentScreen = "tripDetail" }
+                        onNavigateToHome = { currentScreen = "home" },
+                        onNavigateToTrips = { currentScreen = "tripDetail" },
+                        onNavigateToPreferences = { currentScreen = "preferences" },
+                        onNavigateToAbout = { currentScreen = "about" },
+                        onNavigateToProfile = { currentScreen = "profile" }
                     )
                     "preferences" -> PreferencesScreen(
                         onNavigateBack = { currentScreen = "home" },
-                        onNavigateToAbout = { currentScreen = "about" }
+                        onNavigateToHome = { currentScreen = "home" },
+                        onNavigateToAbout = { currentScreen = "about" },
+                        onNavigateToTrips = { currentScreen = "tripDetail" },
+                        onNavigateToGallery = { currentScreen = "gallery" },
+                        onNavigateToProfile = { currentScreen = "profile" }
                     )
                     "about" -> AboutScreen(
                         onNavigateBack = { currentScreen = "home" },
+                        onNavigateToHome = { currentScreen = "home" },
                         onNavigateToTerms = { currentScreen = "terms" },
-                        onNavigateToPreferences = { currentScreen = "preferences" }
+                        onNavigateToPreferences = { currentScreen = "preferences" },
+                        onNavigateToTrips = { currentScreen = "tripDetail" },
+                        onNavigateToGallery = { currentScreen = "gallery" },
+                        onNavigateToProfile = { currentScreen = "profile" }
                     )
                     "terms" -> TermsScreen(
-                        onNavigateBack = { currentScreen = "about" }
+                        onNavigateBack = { currentScreen = "about" },
+                        onNavigateToHome = { currentScreen = "home" }
+                    )
+                    "profile" -> ProfileScreen(
+                        onNavigateBack = { currentScreen = "home" },
+                        onNavigateToHome = { currentScreen = "home" },
+                        onNavigateToPreferences = { currentScreen = "preferences" },
+                        onNavigateToAbout = { currentScreen = "about" },
+                        onNavigateToTrips = { currentScreen = "tripDetail" },
+                        onNavigateToGallery = { currentScreen = "gallery" }
                     )
                 }
             }

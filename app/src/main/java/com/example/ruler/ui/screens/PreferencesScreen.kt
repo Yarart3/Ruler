@@ -18,7 +18,11 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun PreferencesScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToAbout: () -> Unit = {},
+    onNavigateToTrips: () -> Unit = {},
+    onNavigateToGallery: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {}
 ) {
 
     var selectedLanguage by remember { mutableStateOf("English") }
@@ -57,13 +61,13 @@ fun PreferencesScreen(
                 ) {
                     NavigationBarItem(
                         selected = false,
-                        onClick = onNavigateBack,
+                        onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home", fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { },
+                        onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
                         label = { Text("Trips", fontSize = 13.sp) }
                     )
@@ -75,13 +79,13 @@ fun PreferencesScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { },
-                        icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") }, // Face
+                        onClick = { onNavigateToGallery() },
+                        icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
                         label = { Text("Gallery", fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { },
+                        onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile", fontSize = 13.sp) }
                     )

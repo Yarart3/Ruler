@@ -39,9 +39,11 @@ val mockTrips = listOf(
 @Composable
 fun HomeScreen(
     onTripClick: (Int) -> Unit,
-    onNavigateToGallery: () -> Unit,
-    onNavigateToPreferences: () -> Unit,
-    onNavigateToAbout: () -> Unit
+    onNavigateToGallery: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToPreferences: () -> Unit = {},
+    onNavigateToAbout: () -> Unit = {},
+
 ) {
     val nextTrip = mockTrips.first()
     val otherTrips = mockTrips.drop(1)
@@ -77,13 +79,13 @@ fun HomeScreen(
                     tonalElevation = 8.dp
                 ) {
                     NavigationBarItem(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
+                        selected = true,
+                        onClick = { },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home", fontSize = 13.sp) }
                     )
                     NavigationBarItem(
-                        selected = selectedTab == 1,
+                        selected = false,
                         onClick = { onTripClick(1) },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
                         label = { Text("Trips", fontSize = 13.sp) }
@@ -97,15 +99,15 @@ fun HomeScreen(
                     )
 
                     NavigationBarItem(
-                        selected = selectedTab == 2,
+                        selected = false,
                         onClick = { onNavigateToGallery() },
                         // De momento dejamos el icono Face
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
                         label = { Text("Gallery", fontSize = 13.sp) }
                     )
                     NavigationBarItem(
-                        selected = selectedTab == 3,
-                        onClick = { selectedTab = 3 },
+                        selected = false,
+                        onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile", fontSize = 13.sp) }
                     )

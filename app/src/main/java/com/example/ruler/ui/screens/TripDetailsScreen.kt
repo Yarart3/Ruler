@@ -38,7 +38,11 @@ val mockActivities = listOf(
 fun TripDetailScreen(
     tripId: Int,
     onNavigateBack: () -> Unit,
-    onNavigateToGallery: () -> Unit
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToGallery: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToPreferences: () -> Unit = {},
+    onNavigateToAbout: () -> Unit = {}
 ) {
     val trip = mockTrips.find { it.id == tripId } ?: mockTrips.first()
 
@@ -46,6 +50,25 @@ fun TripDetailScreen(
     val tabs = listOf("Itinerary", "Stats", "Gallery")
 
     Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = trip.title, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { onNavigateToAbout() }) {
+                        Icon(Icons.Default.Info, contentDescription = "Info")
+                    }
+                    IconButton(onClick = { onNavigateToPreferences() }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors()
+            )
+        },
         bottomBar = {
             Box {
                 NavigationBar(
@@ -54,7 +77,7 @@ fun TripDetailScreen(
                 ) {
                     NavigationBarItem(
                         selected = false,
-                        onClick = onNavigateBack,
+                        onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home", fontSize = 13.sp) }
                     )
@@ -64,7 +87,6 @@ fun TripDetailScreen(
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
                         label = { Text("Trips", fontSize = 13.sp) }
                     )
-                    // espacio vacío para el botón + del centro
                     NavigationBarItem(
                         selected = false,
                         onClick = { },
@@ -73,13 +95,13 @@ fun TripDetailScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { },
+                        onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
                         label = { Text("Gallery", fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { },
+                        onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile", fontSize = 13.sp) }
                     )
@@ -103,25 +125,6 @@ fun TripDetailScreen(
                 }
             }
         },
-        topBar = {
-            TopAppBar(
-                title = { Text(text = trip.title, fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.Info, contentDescription = "Info")
-                    }
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors()
-            )
-        }
     ) { paddingValues ->
 
         LazyColumn(
@@ -198,7 +201,6 @@ fun TripDetailScreen(
                         )
                     }
                     items(mockActivities) { activity ->
-                        // si tiene día, mostramos el separador de día primero
                         if (activity.day.isNotEmpty()) {
                             Text(
                                 text = activity.day,
@@ -241,20 +243,16 @@ fun ActivityCard(activity: Activity, isLast: Boolean = false) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        // columna izquierda — círculo centrado con la línea
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.width(40.dp)
         ) {
-            // línea de arriba — no se muestra en el primero pero sí en los demás
             Box(
                 modifier = Modifier
                     .width(2.dp)
                     .height(20.dp)
                     .background(MaterialTheme.colorScheme.primaryContainer)
             )
-
-            // círculo con tick o punto según isDone
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -285,8 +283,6 @@ fun ActivityCard(activity: Activity, isLast: Boolean = false) {
                     )
                 }
             }
-
-            // línea de abajo — no se muestra en el último elemento
             if (!isLast) {
                 Box(
                     modifier = Modifier
@@ -299,11 +295,8 @@ fun ActivityCard(activity: Activity, isLast: Boolean = false) {
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // card con la info, con padding abajo para separar las cards
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = if (!isLast) 0.dp else 0.dp),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface

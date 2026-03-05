@@ -40,7 +40,11 @@ val mockPhotos = listOf(
 @Composable
 fun GalleryScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToTrips: () -> Unit
+    onNavigateToHome: () -> Unit,
+    onNavigateToTrips: () -> Unit = {},
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToPreferences: () -> Unit = {},
+    onNavigateToAbout: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -52,10 +56,10 @@ fun GalleryScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onNavigateToAbout() }) {
                         Icon(Icons.Default.Info, contentDescription = "Info")
                     }
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = { onNavigateToPreferences() }) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
                 },
@@ -70,7 +74,7 @@ fun GalleryScreen(
                 ) {
                     NavigationBarItem(
                         selected = false,
-                        onClick = onNavigateBack,
+                        onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                         label = { Text("Home", fontSize = 13.sp) }
                     )
@@ -94,7 +98,7 @@ fun GalleryScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { },
+                        onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
                         label = { Text("Profile", fontSize = 13.sp) }
                     )
