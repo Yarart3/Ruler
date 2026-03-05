@@ -20,16 +20,17 @@ data class Activity(
     val title: String,
     val place: String,
     val cost: String,
-    val isDone: Boolean = false
+    val isDone: Boolean = false,
+    val day: String = ""
 )
 
 val mockActivities = listOf(
-    Activity("09:00", "Flight to São Paulo", "GRU Airport", "€580", isDone = true),
-    Activity("14:30", "Hotel Check-in", "Hotel Unique SP", "€120", isDone = true),
-    Activity("17:00", "Cristo Redentor", "Rio de Janeiro", "€25", isDone = true),
-    Activity("20:00", "Dinner at Fogo de Chão", "Ipanema, Rio", "€45", isDone = false),
-    Activity("10:00", "Copacabana Beach", "Rio de Janeiro", "Free", isDone = false),
-    Activity("15:00", "City Tour", "São Paulo Centro", "€30", isDone = false)
+    Activity("09:00", "Flight to São Paulo", "GRU Airport", "€580", isDone = true, day = "Day 1 — Jul 10"),
+    Activity("14:30", "Hotel Check-in", "Hotel Unique SP", "€120", isDone = true, day = ""),
+    Activity("17:00", "Cristo Redentor", "Rio de Janeiro", "€25", isDone = true, day = ""),
+    Activity("20:00", "Dinner at Fogo de Chão", "Ipanema, Rio", "€45", isDone = false, day = "Day 2 — Jul 11"),
+    Activity("10:00", "Copacabana Beach", "Rio de Janeiro", "Free", isDone = false, day = ""),
+    Activity("15:00", "City Tour", "São Paulo Centro", "€30", isDone = false, day = "Day 3 — Jul 12")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -197,6 +198,16 @@ fun TripDetailScreen(
                         )
                     }
                     items(mockActivities) { activity ->
+                        // si tiene día, mostramos el separador de día primero
+                        if (activity.day.isNotEmpty()) {
+                            Text(
+                                text = activity.day,
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
+                            )
+                        }
                         ActivityCard(
                             activity = activity,
                             isLast = activity == mockActivities.last()

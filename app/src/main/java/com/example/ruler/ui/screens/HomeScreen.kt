@@ -28,7 +28,7 @@ data class Trip(
 
 // de momento los datos son fijos, más adelante vendrán de una base de datos
 val mockTrips = listOf(
-    Trip(1, "Wild Brazil", "São Paulo & Rio, Brazil", "Jul 10 - Jul 24", "€2,800", "🇧🇷"),
+    Trip(1, "Wild Brasil", "São Paulo & Rio, Brazil", "Jul 10 - Jul 24", "€2,800", "🇧🇷"),
     Trip(2, "Discovering Lleida", "Lleida & Igualada, Spain", "Mar 15 - Mar 17", "€150", "🇪🇸"),
     Trip(3, "Tokyo Adventure", "Tokyo, Japan", "Aug 3 - Aug 15", "€2,400", "🇯🇵"),
     Trip(4, "Weekend in Paris", "Paris, France", "Sep 8 - Sep 10", "€600", "🇫🇷"),
@@ -98,7 +98,7 @@ fun HomeScreen(
 
                     NavigationBarItem(
                         selected = selectedTab == 2,
-                        onClick = { selectedTab = 2 },
+                        onClick = { onNavigateToGallery() },
                         // De momento dejamos el icono Face
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
                         label = { Text("Gallery", fontSize = 13.sp) }
@@ -159,7 +159,7 @@ fun HomeScreen(
             }
 
             items(otherTrips) { trip ->
-                SmallTripCard(trip = trip, onClick = { onTripClick(trip.id) })
+                SmallTripCard(trip = trip, onClick = { })
             }
         }
     }

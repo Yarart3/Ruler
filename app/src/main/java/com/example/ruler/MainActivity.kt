@@ -25,13 +25,29 @@ class MainActivity : ComponentActivity() {
                             currentScreen = "tripDetail"
                         },
                         onNavigateToGallery = { currentScreen = "gallery" },
-                        onNavigateToPreferences = { },
-                        onNavigateToAbout = { }
+                        onNavigateToPreferences = { currentScreen = "preferences" },
+                        onNavigateToAbout = { currentScreen = "about" }
                     )
                     "tripDetail" -> TripDetailScreen(
                         tripId = selectedTripId,
                         onNavigateBack = { currentScreen = "home" },
                         onNavigateToGallery = { currentScreen = "gallery" }
+                    )
+                    "gallery" -> GalleryScreen(
+                        onNavigateBack = { currentScreen = "home" },
+                        onNavigateToTrips = { currentScreen = "tripDetail" }
+                    )
+                    "preferences" -> PreferencesScreen(
+                        onNavigateBack = { currentScreen = "home" },
+                        onNavigateToAbout = { currentScreen = "about" }
+                    )
+                    "about" -> AboutScreen(
+                        onNavigateBack = { currentScreen = "home" },
+                        onNavigateToTerms = { currentScreen = "terms" },
+                        onNavigateToPreferences = { currentScreen = "preferences" }
+                    )
+                    "terms" -> TermsScreen(
+                        onNavigateBack = { currentScreen = "about" }
                     )
                 }
             }
