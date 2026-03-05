@@ -39,6 +39,7 @@ val mockTrips = listOf(
 @Composable
 fun HomeScreen(
     onTripClick: (Int) -> Unit,
+    onNavigateToGallery: () -> Unit,
     onNavigateToPreferences: () -> Unit,
     onNavigateToAbout: () -> Unit
 ) {
@@ -53,7 +54,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Ruler",
+                        text = "Home",
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -79,34 +80,34 @@ fun HomeScreen(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home") }
+                        label = { Text("Home", fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        icon = { Icon(Icons.Default.Search, contentDescription = "Explore") },
-                        label = { Text("Explore") }
+                        onClick = { onTripClick(1) },
+                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
+                        label = { Text("Trips", fontSize = 13.sp) }
                     )
 
                     // este espacio vacío es para que el botón + del centro no tape nada
                     NavigationBarItem(
                         selected = false,
                         onClick = { },
-                        icon = { Spacer(modifier = Modifier.size(48.dp)) },
-                        label = { Text("") }
+                        icon = { Spacer(modifier = Modifier.size(48.dp)) }
                     )
 
                     NavigationBarItem(
                         selected = selectedTab == 2,
                         onClick = { selectedTab = 2 },
-                        icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Saved") },
-                        label = { Text("Saved") }
+                        // De momento dejamos el icono Face
+                        icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
+                        label = { Text("Gallery", fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = selectedTab == 3,
                         onClick = { selectedTab = 3 },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile") }
+                        label = { Text("Profile", fontSize = 13.sp) }
                     )
                 }
 

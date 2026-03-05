@@ -4,8 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.*
-import com.example.ruler.ui.screens.HomeScreen
-import com.example.ruler.ui.screens.SplashScreen
+import com.example.ruler.ui.screens.*
 import com.example.ruler.ui.theme.RulerTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,16 +12,26 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             RulerTheme {
-                // variable que controla quina pantalla es veu
-                var showSplash by remember { mutableStateOf(true) }
+                var currentScreen by remember { mutableStateOf("splash") }
+                var selectedTripId by remember { mutableStateOf(1) }
 
-                if (showSplash) {
-                    SplashScreen(onSplashFinished = { showSplash = false })
-                } else {
-                    HomeScreen(
-                        onTripClick = { },
+                when (currentScreen) {
+                    "splash" -> SplashScreen(
+                        onSplashFinished = { currentScreen = "home" }
+                    )
+                    "home" -> HomeScreen(
+                        onTripClick = { tripId ->
+                            selectedTripId = tripId
+                            currentScreen = "tripDetail"
+                        },
+                        onNavigateToGallery = { currentScreen = "gallery" },
                         onNavigateToPreferences = { },
                         onNavigateToAbout = { }
+                    )
+                    "tripDetail" -> TripDetailScreen(
+                        tripId = selectedTripId,
+                        onNavigateBack = { currentScreen = "home" },
+                        onNavigateToGallery = { currentScreen = "gallery" }
                     )
                 }
             }
