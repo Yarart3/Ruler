@@ -26,7 +26,6 @@ data class Trip(
     val flag: String
 )
 
-// de momento los datos son fijos, más adelante vendrán de una base de datos
 val mockTrips = listOf(
     Trip(1, "Wild Brasil", "São Paulo & Rio, Brazil", "Jul 10 - Jul 24", "€2,800", "🇧🇷"),
     Trip(2, "Discovering Lleida", "Lleida & Igualada, Spain", "Mar 15 - Mar 17", "€150", "🇪🇸"),
@@ -43,13 +42,11 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
-
+    onNavigateToTripOptions: (Trip) -> Unit = {},
+    onNavigateToNewTrip: () -> Unit = {}
 ) {
     val nextTrip = mockTrips.first()
     val otherTrips = mockTrips.drop(1)
-
-
-    var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -90,18 +87,14 @@ fun HomeScreen(
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
                         label = { Text("Trips", fontSize = 13.sp) }
                     )
-
-                    // este espacio vacío es para que el botón + del centro no tape nada
                     NavigationBarItem(
                         selected = false,
                         onClick = { },
                         icon = { Spacer(modifier = Modifier.size(48.dp)) }
                     )
-
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToGallery() },
-                        // De momento dejamos el icono Face
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
                         label = { Text("Gallery", fontSize = 13.sp) }
                     )
@@ -114,7 +107,7 @@ fun HomeScreen(
                 }
 
                 FloatingActionButton(
-                    onClick = { },
+                    onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-20).dp)
@@ -149,7 +142,11 @@ fun HomeScreen(
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                NextTripCard(trip = nextTrip, onClick = { onTripClick(nextTrip.id) })
+                NextTripCard(
+                    trip = nextTrip,
+                    onClick = { onTripClick(nextTrip.id) },
+                    onOptionsClick = { onNavigateToTripOptions(nextTrip) }
+                )
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "All trips",
@@ -161,14 +158,18 @@ fun HomeScreen(
             }
 
             items(otherTrips) { trip ->
-                SmallTripCard(trip = trip, onClick = { })
+                SmallTripCard(
+                    trip = trip,
+                    onClick = { },
+                    onOptionsClick = { onNavigateToTripOptions(trip) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun NextTripCard(trip: Trip, onClick: () -> Unit) {
+fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,8 +191,20 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit) {
                 fontSize = 90.sp,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .offset(x = 10.dp),
+                    .offset(x = 10.dp)
             )
+
+            // tres puntets a dalt a la dreta
+            IconButton(
+                onClick = onOptionsClick,
+                modifier = Modifier.align(Alignment.TopEnd)
+            ) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = "Options",
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
 
             Column(
                 modifier = Modifier.align(Alignment.BottomStart)
@@ -227,7 +240,7 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit) {
 }
 
 @Composable
-fun SmallTripCard(trip: Trip, onClick: () -> Unit) {
+fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -280,6 +293,18 @@ fun SmallTripCard(trip: Trip, onClick: () -> Unit) {
                     text = trip.dates.split(" - ").first(),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // tres puntets
+            IconButton(
+                onClick = onOptionsClick,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = "Options",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

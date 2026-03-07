@@ -14,8 +14,19 @@ class MainActivity : ComponentActivity() {
             RulerTheme {
                 var currentScreen by remember { mutableStateOf("splash") }
                 var selectedTripId by remember { mutableStateOf(1) }
+                var selectedActivity by remember { mutableStateOf<Activity?>(null) }
+                var selectedTrip by remember { mutableStateOf<Trip?>(null) }
 
                 when (currentScreen) {
+                    "newTrip" -> NewTripScreen(
+                        onNavigateBack = { currentScreen = "home" },
+                        onNavigateToHome = { currentScreen = "home" },
+                        onNavigateToGallery = { currentScreen = "gallery" },
+                        onNavigateToProfile = { currentScreen = "profile" },
+                        onNavigateToPreferences = { currentScreen = "preferences" },
+                        onNavigateToAbout = { currentScreen = "about" },
+                        onNavigateToTrips = { currentScreen = "tripDetail" }
+                    )
                     "splash" -> SplashScreen(
                         onSplashFinished = { currentScreen = "home" }
                     )
@@ -27,8 +38,26 @@ class MainActivity : ComponentActivity() {
                         onNavigateToGallery = { currentScreen = "gallery" },
                         onNavigateToPreferences = { currentScreen = "preferences" },
                         onNavigateToAbout = { currentScreen = "about" },
-                        onNavigateToProfile = { currentScreen = "profile" }
+                        onNavigateToProfile = { currentScreen = "profile" },
+                        onNavigateToTripOptions = { trip ->
+                            selectedTrip = trip
+                            currentScreen = "tripOptions"
+                        },
+                        onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
+                    "tripOptions" -> {
+                        selectedTrip?.let { trip ->
+                            TripOptionsScreen(
+                                trip = trip,
+                                onNavigateBack = { currentScreen = "home" },
+                                onNavigateToHome = { currentScreen = "home" },
+                                onNavigateToGallery = { currentScreen = "gallery" },
+                                onNavigateToProfile = { currentScreen = "profile" },
+                                onNavigateToPreferences = { currentScreen = "preferences" },
+                                onNavigateToAbout = { currentScreen = "about" }
+                            )
+                        }
+                    }
                     "tripDetail" -> TripDetailScreen(
                         tripId = selectedTripId,
                         onNavigateBack = { currentScreen = "home" },
@@ -36,8 +65,25 @@ class MainActivity : ComponentActivity() {
                         onNavigateToGallery = { currentScreen = "gallery" },
                         onNavigateToPreferences = { currentScreen = "preferences" },
                         onNavigateToAbout = { currentScreen = "about" },
-                        onNavigateToProfile = { currentScreen = "profile" }
+                        onNavigateToProfile = { currentScreen = "profile" },
+                        onNavigateToActivityDetail = { activity ->
+                            selectedActivity = activity
+                            currentScreen = "activityDetail"
+                        }
                     )
+                    "activityDetail" -> {
+                        selectedActivity?.let { activity ->
+                            ActivityDetailScreen(
+                                activity = activity,
+                                onNavigateBack = { currentScreen = "tripDetail" },
+                                onNavigateToHome = { currentScreen = "home" },
+                                onNavigateToGallery = { currentScreen = "gallery" },
+                                onNavigateToProfile = { currentScreen = "profile" },
+                                onNavigateToPreferences = { currentScreen = "preferences" },
+                                onNavigateToAbout = { currentScreen = "about" }
+                            )
+                        }
+                    }
                     "gallery" -> GalleryScreen(
                         onNavigateBack = { currentScreen = "home" },
                         onNavigateToHome = { currentScreen = "home" },
