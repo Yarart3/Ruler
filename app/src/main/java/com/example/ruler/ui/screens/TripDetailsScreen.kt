@@ -42,7 +42,8 @@ fun TripDetailScreen(
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToAbout: () -> Unit = {},
+    onNavigateToActivityDetail: (Activity) -> Unit = {}
 ) {
     val trip = mockTrips.find { it.id == tripId } ?: mockTrips.first()
 
@@ -124,7 +125,7 @@ fun TripDetailScreen(
                     )
                 }
             }
-        },
+        }
     ) { paddingValues ->
 
         LazyColumn(
@@ -212,7 +213,8 @@ fun TripDetailScreen(
                         }
                         ActivityCard(
                             activity = activity,
-                            isLast = activity == mockActivities.last()
+                            isLast = activity == mockActivities.last(),
+                            onActivityClick = { onNavigateToActivityDetail(it) }
                         )
                     }
                 }
@@ -237,12 +239,17 @@ fun TripDetailScreen(
 }
 
 @Composable
-fun ActivityCard(activity: Activity, isLast: Boolean = false) {
+fun ActivityCard(
+    activity: Activity,
+    isLast: Boolean = false,
+    onActivityClick: (Activity) -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
+        // columna esquerra amb la línia i el cercle
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.width(40.dp)
@@ -296,7 +303,9 @@ fun ActivityCard(activity: Activity, isLast: Boolean = false) {
         Spacer(modifier = Modifier.width(12.dp))
 
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 4.dp),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
@@ -334,6 +343,17 @@ fun ActivityCard(activity: Activity, isLast: Boolean = false) {
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
+                // tres puntets per veure detall
+                IconButton(
+                    onClick = { onActivityClick(activity) },
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = "More",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
