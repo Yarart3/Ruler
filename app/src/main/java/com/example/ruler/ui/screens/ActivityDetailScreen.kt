@@ -22,7 +22,8 @@ fun ActivityDetailScreen(
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToAbout: () -> Unit = {},
+    onNavigateToNewTrip: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -83,7 +84,7 @@ fun ActivityDetailScreen(
                 }
 
                 FloatingActionButton(
-                    onClick = { },
+                    onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-20).dp)

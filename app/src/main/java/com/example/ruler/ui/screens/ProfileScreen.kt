@@ -26,7 +26,8 @@ fun ProfileScreen(
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
     onNavigateToTrips: () -> Unit = {},
-    onNavigateToGallery: () -> Unit = {}
+    onNavigateToGallery: () -> Unit = {},
+    onNavigateToNewTrip: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -87,7 +88,7 @@ fun ProfileScreen(
                 }
 
                 FloatingActionButton(
-                    onClick = { },
+                    onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-20).dp)

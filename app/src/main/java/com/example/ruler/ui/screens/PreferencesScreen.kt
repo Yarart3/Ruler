@@ -22,7 +22,8 @@ fun PreferencesScreen(
     onNavigateToAbout: () -> Unit = {},
     onNavigateToTrips: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {}
+    onNavigateToProfile: () -> Unit = {},
+    onNavigateToNewTrip: () -> Unit = {}
 ) {
 
     var selectedLanguage by remember { mutableStateOf("English") }
@@ -92,7 +93,7 @@ fun PreferencesScreen(
                 }
 
                 FloatingActionButton(
-                    onClick = { },
+                    onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-20).dp)
