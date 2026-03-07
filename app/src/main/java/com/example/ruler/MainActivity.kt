@@ -54,7 +54,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToGallery = { currentScreen = "gallery" },
                                 onNavigateToProfile = { currentScreen = "profile" },
                                 onNavigateToPreferences = { currentScreen = "preferences" },
-                                onNavigateToAbout = { currentScreen = "about" }
+                                onNavigateToAbout = { currentScreen = "about" },
+                                onNavigateToNewTrip = { currentScreen = "newTrip" }
                             )
                         }
                     }
@@ -69,7 +70,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToActivityDetail = { activity ->
                             selectedActivity = activity
                             currentScreen = "activityDetail"
-                        }
+                        },
+                        onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
                     "activityDetail" -> {
                         selectedActivity?.let { activity ->
@@ -80,7 +82,8 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToGallery = { currentScreen = "gallery" },
                                 onNavigateToProfile = { currentScreen = "profile" },
                                 onNavigateToPreferences = { currentScreen = "preferences" },
-                                onNavigateToAbout = { currentScreen = "about" }
+                                onNavigateToAbout = { currentScreen = "about" },
+                                onNavigateToNewTrip = { currentScreen = "newTrip" }
                             )
                         }
                     }
@@ -90,7 +93,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToTrips = { currentScreen = "tripDetail" },
                         onNavigateToPreferences = { currentScreen = "preferences" },
                         onNavigateToAbout = { currentScreen = "about" },
-                        onNavigateToProfile = { currentScreen = "profile" }
+                        onNavigateToProfile = { currentScreen = "profile" },
+                        onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
                     "preferences" -> PreferencesScreen(
                         onNavigateBack = { currentScreen = "home" },
@@ -98,7 +102,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToAbout = { currentScreen = "about" },
                         onNavigateToTrips = { currentScreen = "tripDetail" },
                         onNavigateToGallery = { currentScreen = "gallery" },
-                        onNavigateToProfile = { currentScreen = "profile" }
+                        onNavigateToProfile = { currentScreen = "profile" },
+                        onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
                     "about" -> AboutScreen(
                         onNavigateBack = { currentScreen = "home" },
@@ -107,7 +112,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToPreferences = { currentScreen = "preferences" },
                         onNavigateToTrips = { currentScreen = "tripDetail" },
                         onNavigateToGallery = { currentScreen = "gallery" },
-                        onNavigateToProfile = { currentScreen = "profile" }
+                        onNavigateToProfile = { currentScreen = "profile" },
+                        onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
                     "terms" -> TermsScreen(
                         onNavigateBack = { currentScreen = "about" },
@@ -119,7 +125,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToPreferences = { currentScreen = "preferences" },
                         onNavigateToAbout = { currentScreen = "about" },
                         onNavigateToTrips = { currentScreen = "tripDetail" },
-                        onNavigateToGallery = { currentScreen = "gallery" }
+                        onNavigateToGallery = { currentScreen = "gallery" },
+                        onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
                 }
             }

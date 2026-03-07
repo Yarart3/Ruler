@@ -43,7 +43,8 @@ fun TripDetailScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
-    onNavigateToActivityDetail: (Activity) -> Unit = {}
+    onNavigateToActivityDetail: (Activity) -> Unit = {},
+    onNavigateToNewTrip: () -> Unit = {}
 ) {
     val trip = mockTrips.find { it.id == tripId } ?: mockTrips.first()
 
@@ -109,7 +110,7 @@ fun TripDetailScreen(
                 }
 
                 FloatingActionButton(
-                    onClick = { },
+                    onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-20).dp)

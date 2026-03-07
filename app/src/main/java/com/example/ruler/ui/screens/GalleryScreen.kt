@@ -44,7 +44,8 @@ fun GalleryScreen(
     onNavigateToTrips: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToAbout: () -> Unit = {},
+    onNavigateToNewTrip: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -105,7 +106,7 @@ fun GalleryScreen(
                 }
 
                 FloatingActionButton(
-                    onClick = { },
+                    onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-20).dp)
