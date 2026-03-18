@@ -132,6 +132,33 @@ class TripListViewModel : ViewModel() {
         Log.i(TAG, "Actividad creada correctamente: ${activity.id}")
     }
 
+
+    fun getTripById(id: String): Trip? = repository.getTripById(id)
+
+    fun updateActivity(activity: TripActivity) {
+        val trip = repository.getTripById(activity.tripId)
+        val activityDate = parseDate(activity.date)
+        val tripStartDate = trip?.let { parseDate(it.startDate) }
+        val tripEndDate = trip?.let { parseDate(it.endDate) }
+
+        val isDateInRange = trip != null &&
+                activityDate != null &&
+                tripStartDate != null &&
+                tripEndDate != null &&
+                !activityDate.before(tripStartDate) &&
+                !activityDate.after(tripEndDate)
+
+        if (!isDateInRange) {
+            _errorMessage.value = "Activity date must be within trip date range"
+            Log.e(TAG, "Error al actualizar actividad: fecha fuera del rango del viaje")
+            return
+        }
+
+        repository.updateActivity(activity)
+        selectedTripId?.let { _activities.value = repository.getActivitiesByTrip(it) }
+        clearError()
+        Log.i(TAG, "Actividad actualizada: ${activity.id}")
+    }
     fun deleteActivity(id: String) {
         repository.deleteActivity(id)
         selectedTripId?.let { _activities.value = repository.getActivitiesByTrip(it) }
