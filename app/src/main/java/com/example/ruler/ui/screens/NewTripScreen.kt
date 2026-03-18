@@ -1,8 +1,10 @@
 package com.example.ruler.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -10,13 +12,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.ui.viewmodels.TripListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewTripScreen(
+    viewModel: TripListViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
@@ -27,13 +36,19 @@ fun NewTripScreen(
 ) {
     var title by remember { mutableStateOf("") }
     var destination by remember { mutableStateOf("") }
+    var emoji by remember { mutableStateOf("") }
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
     var budget by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+    val error by viewModel.errorMessage.collectAsState()
+
+    val emojiFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     var titleError by remember { mutableStateOf(false) }
     var destinationError by remember { mutableStateOf(false) }
+    var emojiError by remember { mutableStateOf(false) }
     var startDateError by remember { mutableStateOf(false) }
     var endDateError by remember { mutableStateOf(false) }
 
@@ -135,6 +150,7 @@ fun NewTripScreen(
                 onValueChange = {
                     title = it
                     titleError = false
+                    viewModel.clearError()
                 },
                 label = { Text("Trip name") },
                 placeholder = { Text("e.g. Summer in Japan") },
@@ -155,6 +171,7 @@ fun NewTripScreen(
                 onValueChange = {
                     destination = it
                     destinationError = false
+                    viewModel.clearError()
                 },
                 label = { Text("Destination") },
                 placeholder = { Text("e.g. Tokyo, Japan") },
@@ -168,6 +185,37 @@ fun NewTripScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
+            )
+
+            OutlinedTextField(
+                value = emoji,
+                onValueChange = {
+                    emoji = it
+                    emojiError = false
+                    viewModel.clearError()
+                },
+                label = { Text("Trip emoji") },
+                placeholder = { Text("e.g. ✈️") },
+                leadingIcon = {
+                    Icon(Icons.Default.Face, contentDescription = null)
+                },
+                isError = emojiError,
+                supportingText = {
+                    if (emojiError) Text("This field is required")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(emojiFocusRequester)
+                    .clickable {
+                        emojiFocusRequester.requestFocus()
+                        keyboardController?.show()
+                    },
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                )
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -188,6 +236,7 @@ fun NewTripScreen(
                     onValueChange = {
                         startDate = it
                         startDateError = false
+                        viewModel.clearError()
                     },
                     label = { Text("Start date") },
                     placeholder = { Text("dd/mm/yyyy") },
@@ -207,6 +256,7 @@ fun NewTripScreen(
                     onValueChange = {
                         endDate = it
                         endDateError = false
+                        viewModel.clearError()
                     },
                     label = { Text("End date") },
                     placeholder = { Text("dd/mm/yyyy") },
@@ -234,7 +284,10 @@ fun NewTripScreen(
 
             OutlinedTextField(
                 value = budget,
-                onValueChange = { budget = it },
+                onValueChange = {
+                    budget = it
+                    viewModel.clearError()
+                },
                 label = { Text("Estimated budget") },
                 placeholder = { Text("e.g. €1500") },
                 leadingIcon = {
@@ -247,7 +300,10 @@ fun NewTripScreen(
 
             OutlinedTextField(
                 value = notes,
-                onValueChange = { notes = it },
+                onValueChange = {
+                    notes = it
+                    viewModel.clearError()
+                },
                 label = { Text("Notes") },
                 placeholder = { Text("Any extra info about the trip...") },
                 leadingIcon = {
@@ -260,17 +316,38 @@ fun NewTripScreen(
                 maxLines = 4
             )
 
+            error?.let {
+                Text(
+                    text = it,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = {
                     titleError = title.isBlank()
                     destinationError = destination.isBlank()
+                    emojiError = emoji.isBlank()
                     startDateError = startDate.isBlank()
                     endDateError = endDate.isBlank()
 
-                    if (!titleError && !destinationError && !startDateError && !endDateError) {
-                        onNavigateToHome()
+                    if (!titleError && !destinationError && !emojiError && !startDateError && !endDateError) {
+                        viewModel.addTrip(
+                            title = title,
+                            destination = destination,
+                            startDate = startDate,
+                            endDate = endDate,
+                            description = notes,
+                            budget = budget,
+                            emoji = emoji
+                        )
+
+                        if (viewModel.errorMessage.value == null) {
+                            onNavigateBack()
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

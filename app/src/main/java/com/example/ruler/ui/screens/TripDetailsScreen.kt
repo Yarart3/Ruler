@@ -14,39 +14,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class Activity(
-    val time: String,
-    val title: String,
-    val place: String,
-    val cost: String,
-    val isDone: Boolean = false,
-    val day: String = ""
-)
-
-val mockActivities = listOf(
-    Activity("09:00", "Flight to São Paulo", "GRU Airport", "€580", isDone = true, day = "Day 1 — Jul 10"),
-    Activity("14:30", "Hotel Check-in", "Hotel Unique SP", "€120", isDone = true, day = ""),
-    Activity("17:00", "Cristo Redentor", "Rio de Janeiro", "€25", isDone = true, day = ""),
-    Activity("20:00", "Dinner at Fogo de Chão", "Ipanema, Rio", "€45", isDone = false, day = "Day 2 — Jul 11"),
-    Activity("10:00", "Copacabana Beach", "Rio de Janeiro", "Free", isDone = false, day = ""),
-    Activity("15:00", "City Tour", "São Paulo Centro", "€30", isDone = false, day = "Day 3 — Jul 12")
-)
+import com.example.ruler.domain.Trip
+import com.example.ruler.domain.TripActivity
+import com.example.ruler.ui.viewmodels.TripListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripDetailScreen(
-    tripId: Int,
+    viewModel: TripListViewModel,
+    tripId: String,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
-    onNavigateToActivityDetail: (Activity) -> Unit = {},
+    onNavigateToActivityDetail: (TripActivity) -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {}
 ) {
-    val trip = mockTrips.find { it.id == tripId } ?: mockTrips.first()
+    val trips by viewModel.trips.collectAsState()
+    val activities by viewModel.activities.collectAsState()
+    val trip = trips.find { it.id == tripId } ?: trips.firstOrNull() ?: return
+
+    LaunchedEffect(tripId) {
+        viewModel.selectTrip(tripId)
+    }
 
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Itinerary", "Stats", "Gallery")
@@ -146,22 +138,22 @@ fun TripDetailScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(text = trip.flag, fontSize = 56.sp)
+                        Text(text = trip.emoji, fontSize = 56.sp)
                         Column {
                             Text(
-                                text = trip.destination,
+                                text = trip.title,
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                             Text(
-                                text = trip.dates,
+                                text = "${trip.startDate} - ${trip.endDate}",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Budget: ${trip.budget}",
+                                text = trip.description,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
@@ -202,25 +194,17 @@ fun TripDetailScreen(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                         )
                     }
-                    items(mockActivities) { activity ->
-                        if (activity.day.isNotEmpty()) {
-                            Text(
-                                text = activity.day,
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(start = 16.dp, top = 12.dp, bottom = 4.dp)
-                            )
-                        }
+                    items(activities) { activity ->
                         ActivityCard(
                             activity = activity,
-                            isLast = activity == mockActivities.last(),
-                            onActivityClick = { onNavigateToActivityDetail(it) }
+                            isLast = activity == activities.lastOrNull(),
+                            onDeleteClick = { viewModel.deleteActivity(activity.id) },
+                            onActivityClick = { onNavigateToActivityDetail(activity) }
                         )
                     }
                 }
                 1 -> {
-                    item { StatsSection(trip = trip) }
+                    item { StatsSection(trip = trip, activityCount = activities.size) }
                 }
                 2 -> {
                     item {
@@ -241,16 +225,16 @@ fun TripDetailScreen(
 
 @Composable
 fun ActivityCard(
-    activity: Activity,
+    activity: TripActivity,
     isLast: Boolean = false,
-    onActivityClick: (Activity) -> Unit = {}
+    onDeleteClick: () -> Unit = {},
+    onActivityClick: (TripActivity) -> Unit = {}
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
     ) {
-        // columna esquerra amb la línia i el cercle
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.width(40.dp)
@@ -265,31 +249,17 @@ fun ActivityCard(
                 modifier = Modifier
                     .size(32.dp)
                     .background(
-                        color = if (activity.isDone)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.surfaceVariant,
+                        color = MaterialTheme.colorScheme.primary,
                         shape = RoundedCornerShape(50)
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                if (activity.isDone) {
-                    Icon(
-                        Icons.Default.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurfaceVariant,
-                                RoundedCornerShape(50)
-                            )
-                    )
-                }
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
             }
             if (!isLast) {
                 Box(
@@ -333,27 +303,37 @@ fun ActivityCard(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = activity.place,
+                        text = activity.date,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = activity.description,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Text(
-                    text = activity.cost,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                // tres puntets per veure detall
-                IconButton(
-                    onClick = { onActivityClick(activity) },
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = "More",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Row {
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    IconButton(
+                        onClick = { onActivityClick(activity) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = "More",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -361,7 +341,7 @@ fun ActivityCard(
 }
 
 @Composable
-fun StatsSection(trip: Trip) {
+fun StatsSection(trip: Trip, activityCount: Int) {
     Column(
         modifier = Modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -375,15 +355,15 @@ fun StatsSection(trip: Trip) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatCard(modifier = Modifier.weight(1f), label = "Total budget", value = trip.budget, icon = "💰")
-            StatCard(modifier = Modifier.weight(1f), label = "Activities", value = "${mockActivities.size}", icon = "📍")
+            StatCard(modifier = Modifier.weight(1f), label = "Start", value = trip.startDate, icon = "📅")
+            StatCard(modifier = Modifier.weight(1f), label = "Activities", value = "$activityCount", icon = "📍")
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatCard(modifier = Modifier.weight(1f), label = "Destination", value = trip.flag, icon = "")
-            StatCard(modifier = Modifier.weight(1f), label = "Duration", value = "14 days", icon = "📅")
+            StatCard(modifier = Modifier.weight(1f), label = "End", value = trip.endDate, icon = "🧭")
+            StatCard(modifier = Modifier.weight(1f), label = "Trip", value = trip.emoji, icon = "✈️")
         }
     }
 }
