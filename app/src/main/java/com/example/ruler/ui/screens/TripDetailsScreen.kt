@@ -30,7 +30,9 @@ fun TripDetailScreen(
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
     onNavigateToActivityDetail: (TripActivity) -> Unit = {},
-    onNavigateToNewTrip: () -> Unit = {}
+    onNavigateToNewTrip: () -> Unit = {},
+    onNavigateToAddActivity: () -> Unit = {},
+    onNavigateToEditActivity: (TripActivity) -> Unit = {}
 ) {
     val trips by viewModel.trips.collectAsState()
     val activities by viewModel.activities.collectAsState()
@@ -187,19 +189,35 @@ fun TripDetailScreen(
             when (selectedTab) {
                 0 -> {
                     item {
-                        Text(
-                            text = "Activities",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Activities",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Button(
+                                onClick = { onNavigateToAddActivity() },
+                                shape = RoundedCornerShape(20.dp)
+                            ) {
+                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Add", style = MaterialTheme.typography.labelLarge)
+                            }
+                        }
                     }
                     items(activities) { activity ->
                         ActivityCard(
                             activity = activity,
                             isLast = activity == activities.lastOrNull(),
                             onDeleteClick = { viewModel.deleteActivity(activity.id) },
-                            onActivityClick = { onNavigateToActivityDetail(activity) }
+                            onActivityClick = { onNavigateToActivityDetail(activity) },
+                            onEditClick = { onNavigateToEditActivity(activity) }
                         )
                     }
                 }
@@ -228,7 +246,8 @@ fun ActivityCard(
     activity: TripActivity,
     isLast: Boolean = false,
     onDeleteClick: () -> Unit = {},
-    onActivityClick: (TripActivity) -> Unit = {}
+    onActivityClick: (TripActivity) -> Unit = {},
+    onEditClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -325,12 +344,12 @@ fun ActivityCard(
                         )
                     }
                     IconButton(
-                        onClick = { onActivityClick(activity) },
+                        onClick = { onEditClick() },
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            Icons.Default.MoreVert,
-                            contentDescription = "More",
+                            Icons.Default.Edit,
+                            contentDescription = "Edit",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

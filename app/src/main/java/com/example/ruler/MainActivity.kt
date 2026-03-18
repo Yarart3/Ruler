@@ -23,6 +23,7 @@ class MainActivity : ComponentActivity() {
                 var selectedTripIdForEdit by remember { mutableStateOf("1") }
                 var selectedActivity by remember { mutableStateOf<TripActivity?>(null) }
                 var selectedTrip by remember { mutableStateOf<Trip?>(null) }
+                var activityToEdit by remember { mutableStateOf<TripActivity?>(null) }
 
                 when (currentScreen) {
                     "newTrip" -> NewTripScreen(
@@ -97,8 +98,37 @@ class MainActivity : ComponentActivity() {
                             selectedActivity = activity
                             currentScreen = "activityDetail"
                         },
+                        onNavigateToNewTrip = { currentScreen = "newTrip" },
+                        onNavigateToAddActivity = { currentScreen = "addActivity" },
+                        onNavigateToEditActivity = { activity ->
+                            activityToEdit = activity
+                            currentScreen = "editActivity"
+                        }
+                    )
+                    "addActivity" -> AddActivityScreen(
+                        viewModel = viewModel,
+                        tripId = selectedTripId,
+                        onNavigateBack = { currentScreen = "tripDetail" },
+                        onNavigateToHome = { currentScreen = "home" },
+                        onNavigateToGallery = { currentScreen = "gallery" },
+                        onNavigateToProfile = { currentScreen = "profile" },
+                        onNavigateToPreferences = { currentScreen = "preferences" },
+                        onNavigateToAbout = { currentScreen = "about" },
                         onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
+                    "editActivity" -> activityToEdit?.let { activity ->
+                        EditActivityScreen(
+                            viewModel = viewModel,
+                            activity = activity,
+                            onNavigateBack = { currentScreen = "tripDetail" },
+                            onNavigateToHome = { currentScreen = "home" },
+                            onNavigateToGallery = { currentScreen = "gallery" },
+                            onNavigateToProfile = { currentScreen = "profile" },
+                            onNavigateToPreferences = { currentScreen = "preferences" },
+                            onNavigateToAbout = { currentScreen = "about" },
+                            onNavigateToNewTrip = { currentScreen = "newTrip" }
+                        )
+                    }
                     "activityDetail" -> {
                         selectedActivity?.let { activity ->
                             ActivityDetailScreen(
