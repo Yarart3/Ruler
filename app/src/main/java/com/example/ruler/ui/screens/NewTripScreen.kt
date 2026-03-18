@@ -1,5 +1,6 @@
 package com.example.ruler.ui.screens
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ruler.ui.viewmodels.TripListViewModel
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +54,29 @@ fun NewTripScreen(
     var emojiError by remember { mutableStateOf(false) }
     var startDateError by remember { mutableStateOf(false) }
     var endDateError by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val cal = Calendar.getInstance()
+
+    val startDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            startDate = "%02d/%02d/%04d".format(day, month + 1, year)
+            startDateError = false
+            viewModel.clearError()
+        },
+        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val endDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            endDate = "%02d/%02d/%04d".format(day, month + 1, year)
+            endDateError = false
+            viewModel.clearError()
+        },
+        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+    )
 
     Scaffold(
         topBar = {
@@ -154,13 +180,9 @@ fun NewTripScreen(
                 },
                 label = { Text("Trip name") },
                 placeholder = { Text("e.g. Summer in Japan") },
-                leadingIcon = {
-                    Icon(Icons.Default.Edit, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 isError = titleError,
-                supportingText = {
-                    if (titleError) Text("This field is required")
-                },
+                supportingText = { if (titleError) Text("This field is required") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -175,13 +197,9 @@ fun NewTripScreen(
                 },
                 label = { Text("Destination") },
                 placeholder = { Text("e.g. Tokyo, Japan") },
-                leadingIcon = {
-                    Icon(Icons.Default.LocationOn, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                 isError = destinationError,
-                supportingText = {
-                    if (destinationError) Text("This field is required")
-                },
+                supportingText = { if (destinationError) Text("This field is required") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -196,13 +214,9 @@ fun NewTripScreen(
                 },
                 label = { Text("Trip emoji") },
                 placeholder = { Text("e.g. ✈️") },
-                leadingIcon = {
-                    Icon(Icons.Default.Face, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.Face, contentDescription = null) },
                 isError = emojiError,
-                supportingText = {
-                    if (emojiError) Text("This field is required")
-                },
+                supportingText = { if (emojiError) Text("This field is required") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(emojiFocusRequester)
@@ -233,43 +247,65 @@ fun NewTripScreen(
             ) {
                 OutlinedTextField(
                     value = startDate,
-                    onValueChange = {
-                        startDate = it
-                        startDateError = false
-                        viewModel.clearError()
-                    },
+                    onValueChange = { },
                     label = { Text("Start date") },
-                    placeholder = { Text("dd/mm/yyyy") },
-                    leadingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = null)
+                    placeholder = { Text("dd/MM/yyyy") },
+                    leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.clickable { startDatePickerDialog.show() }
+                        )
                     },
                     isError = startDateError,
-                    supportingText = {
-                        if (startDateError) Text("Required")
-                    },
-                    modifier = Modifier.weight(1f),
+                    supportingText = { if (startDateError) Text("Required") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { startDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    readOnly = true,
+                    enabled = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = if (startDateError) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.outline,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
                 OutlinedTextField(
                     value = endDate,
-                    onValueChange = {
-                        endDate = it
-                        endDateError = false
-                        viewModel.clearError()
-                    },
+                    onValueChange = { },
                     label = { Text("End date") },
-                    placeholder = { Text("dd/mm/yyyy") },
-                    leadingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = null)
+                    placeholder = { Text("dd/MM/yyyy") },
+                    leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.clickable { endDatePickerDialog.show() }
+                        )
                     },
                     isError = endDateError,
-                    supportingText = {
-                        if (endDateError) Text("Required")
-                    },
-                    modifier = Modifier.weight(1f),
+                    supportingText = { if (endDateError) Text("Required") },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { endDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    readOnly = true,
+                    enabled = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = if (endDateError) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.outline,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
             }
 
@@ -290,9 +326,7 @@ fun NewTripScreen(
                 },
                 label = { Text("Estimated budget") },
                 placeholder = { Text("e.g. €1500") },
-                leadingIcon = {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -306,9 +340,7 @@ fun NewTripScreen(
                 },
                 label = { Text("Notes") },
                 placeholder = { Text("Any extra info about the trip...") },
-                leadingIcon = {
-                    Icon(Icons.Default.Info, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(120.dp),
@@ -344,7 +376,6 @@ fun NewTripScreen(
                             budget = budget,
                             emoji = emoji
                         )
-
                         if (viewModel.errorMessage.value == null) {
                             onNavigateBack()
                         }
