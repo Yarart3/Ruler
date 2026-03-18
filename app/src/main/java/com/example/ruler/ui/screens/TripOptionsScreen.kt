@@ -12,10 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.domain.Trip
+import com.example.ruler.ui.viewmodels.TripListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TripOptionsScreen(
+    viewModel: TripListViewModel,
     trip: Trip,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
@@ -23,6 +26,7 @@ fun TripOptionsScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
+    onNavigateToEdit: (String) -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {}
 ) {
     Scaffold(
@@ -108,7 +112,6 @@ fun TripOptionsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // capçalera amb el flag i el títol
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -119,7 +122,7 @@ fun TripOptionsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(text = trip.flag, fontSize = 56.sp)
+                    Text(text = trip.emoji, fontSize = 56.sp)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             text = trip.title,
@@ -142,7 +145,6 @@ fun TripOptionsScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // info del viatge
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
@@ -159,21 +161,29 @@ fun TripOptionsScreen(
                         HorizontalDivider()
                         TripInfoRow(label = "Destination", value = trip.destination)
                         HorizontalDivider()
-                        TripInfoRow(label = "Dates", value = trip.dates)
+                        TripInfoRow(label = "Description", value = trip.description)
                         HorizontalDivider()
                         TripInfoRow(label = "Budget", value = trip.budget)
+                        HorizontalDivider()
+                        TripInfoRow(label = "Start date", value = trip.startDate)
+                        HorizontalDivider()
+                        TripInfoRow(label = "End date", value = trip.endDate)
+                        HorizontalDivider()
+                        TripInfoRow(label = "Emoji", value = trip.emoji)
                     }
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                // botons editar i borrar
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { },
+                        onClick = {
+                            viewModel.deleteTrip(trip.id)
+                            onNavigateToHome()
+                        },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(
@@ -190,7 +200,7 @@ fun TripOptionsScreen(
                     }
 
                     Button(
-                        onClick = { },
+                        onClick = { onNavigateToEdit(trip.id) },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(

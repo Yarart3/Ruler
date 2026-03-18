@@ -12,11 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.domain.TripActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActivityDetailScreen(
-    activity: Activity,
+    activity: TripActivity,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
@@ -108,7 +109,6 @@ fun ActivityDetailScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // capçalera de color
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -129,7 +129,7 @@ fun ActivityDetailScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = activity.place,
+                        text = activity.description,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                     )
@@ -158,14 +158,11 @@ fun ActivityDetailScreen(
                         HorizontalDivider()
                         ActivityInfoRow(label = "Activity", value = activity.title)
                         HorizontalDivider()
-                        ActivityInfoRow(label = "Location", value = activity.place)
+                        ActivityInfoRow(label = "Description", value = activity.description)
                         HorizontalDivider()
-                        ActivityInfoRow(label = "Cost", value = activity.cost)
+                        ActivityInfoRow(label = "Date", value = activity.date)
                         HorizontalDivider()
-                        ActivityInfoRow(
-                            label = "Status",
-                            value = if (activity.isDone) "✅ Done" else "⏳ Pending"
-                        )
+                        ActivityInfoRow(label = "Trip ID", value = activity.tripId)
                     }
                 }
 

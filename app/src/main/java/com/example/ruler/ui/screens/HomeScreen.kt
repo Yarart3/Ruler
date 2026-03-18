@@ -16,28 +16,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class Trip(
-    val id: Int,
-    val title: String,
-    val destination: String,
-    val dates: String,
-    val budget: String,
-    val flag: String
-)
-
-val mockTrips = listOf(
-    Trip(1, "Wild Brasil", "São Paulo & Rio, Brazil", "Jul 10 - Jul 24", "€2,800", "🇧🇷"),
-    Trip(2, "Discovering Lleida", "Lleida & Igualada, Spain", "Mar 15 - Mar 17", "€150", "🇪🇸"),
-    Trip(3, "Tokyo Adventure", "Tokyo, Japan", "Aug 3 - Aug 15", "€2,400", "🇯🇵"),
-    Trip(4, "Weekend in Paris", "Paris, France", "Sep 8 - Sep 10", "€600", "🇫🇷"),
-    Trip(5, "NYC Explorer", "New York, USA", "Oct 20 - Oct 28", "€1,800", "🇺🇸")
-)
+import com.example.ruler.domain.Trip
+import com.example.ruler.ui.viewmodels.TripListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onTripClick: (Int) -> Unit,
+    viewModel: TripListViewModel,
+    onTripClick: (String) -> Unit,
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
@@ -45,8 +31,9 @@ fun HomeScreen(
     onNavigateToTripOptions: (Trip) -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {}
 ) {
-    val nextTrip = mockTrips.first()
-    val otherTrips = mockTrips.drop(1)
+    val trips by viewModel.trips.collectAsState()
+    val nextTrip = trips.firstOrNull()
+    val otherTrips = trips.drop(1)
 
     Scaffold(
         topBar = {
@@ -83,7 +70,12 @@ fun HomeScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { onTripClick(1) },
+                        onClick = {
+                            nextTrip?.let {
+                                viewModel.selectTrip(it.id)
+                                onTripClick(it.id)
+                            }
+                        },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
                         label = { Text("Trips", fontSize = 13.sp) }
                     )
@@ -142,11 +134,16 @@ fun HomeScreen(
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                NextTripCard(
-                    trip = nextTrip,
-                    onClick = { onTripClick(nextTrip.id) },
-                    onOptionsClick = { onNavigateToTripOptions(nextTrip) }
-                )
+                nextTrip?.let { trip ->
+                    NextTripCard(
+                        trip = trip,
+                        onClick = {
+                            viewModel.selectTrip(trip.id)
+                            onTripClick(trip.id)
+                        },
+                        onOptionsClick = { onNavigateToTripOptions(trip) }
+                    )
+                }
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = "All trips",
@@ -160,7 +157,10 @@ fun HomeScreen(
             items(otherTrips) { trip ->
                 SmallTripCard(
                     trip = trip,
-                    onClick = { },
+                    onClick = {
+                        viewModel.selectTrip(trip.id)
+                        onTripClick(trip.id)
+                    },
                     onOptionsClick = { onNavigateToTripOptions(trip) }
                 )
             }
@@ -187,14 +187,13 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
                 .padding(20.dp)
         ) {
             Text(
-                text = trip.flag,
+                text = trip.emoji,
                 fontSize = 90.sp,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .offset(x = 10.dp)
             )
 
-            // tres puntets a dalt a la dreta
             IconButton(
                 onClick = onOptionsClick,
                 modifier = Modifier.align(Alignment.TopEnd)
@@ -216,19 +215,19 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
                     color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
-                    text = trip.destination,
+                    text = trip.startDate,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = trip.dates,
+                        text = trip.startDate,
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                     )
                     Text(
-                        text = trip.budget,
+                        text = trip.endDate,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
@@ -264,7 +263,7 @@ fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = 
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = trip.flag, fontSize = 24.sp)
+                Text(text = trip.emoji, fontSize = 24.sp)
             }
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -276,7 +275,7 @@ fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = 
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = trip.destination,
+                    text = trip.startDate,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -284,19 +283,18 @@ fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = 
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = trip.budget,
+                    text = trip.endDate,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text = trip.dates.split(" - ").first(),
+                    text = trip.startDate,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            // tres puntets
             IconButton(
                 onClick = onOptionsClick,
                 modifier = Modifier.size(32.dp)
