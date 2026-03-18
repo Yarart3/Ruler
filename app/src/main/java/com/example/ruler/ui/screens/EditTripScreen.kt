@@ -1,5 +1,6 @@
 package com.example.ruler.ui.screens
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -14,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -22,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ruler.domain.Trip
 import com.example.ruler.ui.viewmodels.TripListViewModel
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +53,27 @@ fun EditTripScreen(
 
     val emojiFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+
+    val context = LocalContext.current
+    val cal = Calendar.getInstance()
+
+    val startDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            startDate = "%02d/%02d/%04d".format(day, month + 1, year)
+            viewModel.clearError()
+        },
+        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val endDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            endDate = "%02d/%02d/%04d".format(day, month + 1, year)
+            viewModel.clearError()
+        },
+        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+    )
 
     Scaffold(
         topBar = {
@@ -145,10 +169,7 @@ fun EditTripScreen(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = {
-                    title = it
-                    viewModel.clearError()
-                },
+                onValueChange = { title = it; viewModel.clearError() },
                 label = { Text("Trip name") },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -158,10 +179,7 @@ fun EditTripScreen(
 
             OutlinedTextField(
                 value = destination,
-                onValueChange = {
-                    destination = it
-                    viewModel.clearError()
-                },
+                onValueChange = { destination = it; viewModel.clearError() },
                 label = { Text("Destination") },
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -171,10 +189,7 @@ fun EditTripScreen(
 
             OutlinedTextField(
                 value = emoji,
-                onValueChange = {
-                    emoji = it
-                    viewModel.clearError()
-                },
+                onValueChange = { emoji = it; viewModel.clearError() },
                 label = { Text("Trip emoji") },
                 leadingIcon = { Icon(Icons.Default.Face, contentDescription = null) },
                 modifier = Modifier
@@ -194,10 +209,7 @@ fun EditTripScreen(
 
             OutlinedTextField(
                 value = description,
-                onValueChange = {
-                    description = it
-                    viewModel.clearError()
-                },
+                onValueChange = { description = it; viewModel.clearError() },
                 label = { Text("Description") },
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -218,36 +230,63 @@ fun EditTripScreen(
             ) {
                 OutlinedTextField(
                     value = startDate,
-                    onValueChange = {
-                        startDate = it
-                        viewModel.clearError()
-                    },
+                    onValueChange = { },
                     label = { Text("Start date") },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-                    modifier = Modifier.weight(1f),
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.clickable { startDatePickerDialog.show() }
+                        )
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { startDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    readOnly = true,
+                    enabled = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
                 OutlinedTextField(
                     value = endDate,
-                    onValueChange = {
-                        endDate = it
-                        viewModel.clearError()
-                    },
+                    onValueChange = { },
                     label = { Text("End date") },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-                    modifier = Modifier.weight(1f),
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = null,
+                            modifier = Modifier.clickable { endDatePickerDialog.show() }
+                        )
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { endDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
-                    singleLine = true
+                    readOnly = true,
+                    enabled = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
             }
 
             OutlinedTextField(
                 value = budget,
-                onValueChange = {
-                    budget = it
-                    viewModel.clearError()
-                },
+                onValueChange = { budget = it; viewModel.clearError() },
                 label = { Text("Estimated budget") },
                 leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
@@ -279,7 +318,6 @@ fun EditTripScreen(
                             emoji = emoji
                         )
                     )
-
                     if (viewModel.errorMessage.value == null) {
                         onNavigateToHome()
                     }
