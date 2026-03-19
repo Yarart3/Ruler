@@ -1,5 +1,8 @@
 package com.example.ruler.ui.screens
 
+import android.app.DatePickerDialog
+import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,9 +13,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.util.Calendar
+
+private const val PREFS_NAME = "ruler_prefs"
+private const val KEY_USERNAME = "username"
+private const val KEY_DATE_OF_BIRTH = "date_of_birth"
+private const val KEY_DARK_MODE = "dark_mode"
+private const val KEY_LANGUAGE = "language"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,19 +34,31 @@ fun PreferencesScreen(
     onNavigateToTrips: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
-    onNavigateToNewTrip: () -> Unit = {}
+    onNavigateToNewTrip: () -> Unit = {},
+    onDarkModeChange: (Boolean) -> Unit = {},
+    onLanguageChange: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    var selectedLanguage by remember { mutableStateOf("English") }
-    var darkTheme by remember { mutableStateOf(false) }
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var currencySymbol by remember { mutableStateOf("€ Euro") }
+    var username by remember { mutableStateOf(prefs.getString(KEY_USERNAME, "") ?: "") }
+    var dateOfBirth by remember { mutableStateOf(prefs.getString(KEY_DATE_OF_BIRTH, "") ?: "") }
+    var darkTheme by remember { mutableStateOf(prefs.getBoolean(KEY_DARK_MODE, false)) }
+    var selectedLanguage by remember { mutableStateOf(prefs.getString(KEY_LANGUAGE, "en") ?: "en") }
 
-    val languages = listOf("English", "Español", "Català", "Français", "日本語")
-    val currencies = listOf("€ Euro", "$ Dollar", "£ Pound", "¥ Yen")
-
+    val languages = listOf("en" to "English", "ca" to "Català", "es" to "Español")
     var showLanguageMenu by remember { mutableStateOf(false) }
-    var showCurrencyMenu by remember { mutableStateOf(false) }
+    val languageLabel = languages.firstOrNull { it.first == selectedLanguage }?.second ?: "English"
+
+    val cal = Calendar.getInstance()
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, day ->
+            dateOfBirth = "%02d/%02d/%04d".format(day, month + 1, year)
+            prefs.edit().putString(KEY_DATE_OF_BIRTH, dateOfBirth).apply()
+        },
+        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+    )
 
     Scaffold(
         topBar = {
@@ -60,38 +83,22 @@ fun PreferencesScreen(
                     containerColor = MaterialTheme.colorScheme.surface,
                     tonalElevation = 8.dp
                 ) {
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { onNavigateToHome() },
+                    NavigationBarItem(selected = false, onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { onNavigateToTrips() },
+                        label = { Text("Home", fontSize = 13.sp) })
+                    NavigationBarItem(selected = false, onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { },
+                        label = { Text("Trips", fontSize = 13.sp) })
+                    NavigationBarItem(selected = false, onClick = { },
                         icon = { Spacer(modifier = Modifier.size(48.dp)) },
-                        label = { Text("") }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { onNavigateToGallery() },
+                        label = { Text("") })
+                    NavigationBarItem(selected = false, onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
-                    )
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = { onNavigateToProfile() },
+                        label = { Text("Gallery", fontSize = 13.sp) })
+                    NavigationBarItem(selected = false, onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
-                    )
+                        label = { Text("Profile", fontSize = 13.sp) })
                 }
-
                 FloatingActionButton(
                     onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
@@ -101,17 +108,13 @@ fun PreferencesScreen(
                     containerColor = MaterialTheme.colorScheme.primary,
                     elevation = FloatingActionButtonDefaults.elevation(8.dp)
                 ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "New trip",
+                    Icon(Icons.Default.Add, contentDescription = "New trip",
                         tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(28.dp)
-                    )
+                        modifier = Modifier.size(28.dp))
                 }
             }
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -121,8 +124,54 @@ fun PreferencesScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            PreferenceSectionTitle(title = "Language & Region")
+            PreferenceSectionTitle(title = "Profile")
+            PreferenceCard {
+                OutlinedTextField(
+                    value = username,
+                    onValueChange = { v ->
+                        username = v
+                        prefs.edit().putString(KEY_USERNAME, v).apply()
+                    },
+                    label = { Text("Username") },
+                    leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = dateOfBirth,
+                    onValueChange = { },
+                    label = { Text("Date of birth") },
+                    placeholder = { Text("Select a date") },
+                    leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                    trailingIcon = {
+                        Icon(
+                            Icons.Default.DateRange,
+                            contentDescription = "Open calendar",
+                            modifier = Modifier.clickable { datePickerDialog.show() }
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { datePickerDialog.show() },
+                    shape = RoundedCornerShape(12.dp),
+                    readOnly = true,
+                    enabled = false,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                        disabledBorderColor = MaterialTheme.colorScheme.outline,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
+                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
 
+            Spacer(modifier = Modifier.height(4.dp))
+
+            PreferenceSectionTitle(title = "Language & Region")
             PreferenceCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -137,7 +186,7 @@ fun PreferencesScreen(
                         Column {
                             Text("Language", style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold)
-                            Text(selectedLanguage, style = MaterialTheme.typography.bodySmall,
+                            Text(languageLabel, style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
@@ -149,52 +198,14 @@ fun PreferencesScreen(
                             expanded = showLanguageMenu,
                             onDismissRequest = { showLanguageMenu = false }
                         ) {
-                            languages.forEach { lang ->
+                            languages.forEach { (code, label) ->
                                 DropdownMenuItem(
-                                    text = { Text(lang) },
+                                    text = { Text(label) },
                                     onClick = {
-                                        selectedLanguage = lang
+                                        selectedLanguage = code
+                                        prefs.edit().putString(KEY_LANGUAGE, code).apply()
                                         showLanguageMenu = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("💰", fontSize = 22.sp)
-                        Column {
-                            Text("Currency", style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold)
-                            Text(currencySymbol, style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                    Box {
-                        IconButton(onClick = { showCurrencyMenu = true }) {
-                            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-                        }
-                        DropdownMenu(
-                            expanded = showCurrencyMenu,
-                            onDismissRequest = { showCurrencyMenu = false }
-                        ) {
-                            currencies.forEach { currency ->
-                                DropdownMenuItem(
-                                    text = { Text(currency) },
-                                    onClick = {
-                                        currencySymbol = currency
-                                        showCurrencyMenu = false
+                                        onLanguageChange()
                                     }
                                 )
                             }
@@ -206,7 +217,6 @@ fun PreferencesScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             PreferenceSectionTitle(title = "Appearance")
-
             PreferenceCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -221,42 +231,18 @@ fun PreferencesScreen(
                         Column {
                             Text("Dark mode", style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold)
-                            Text("Change app appearance", style = MaterialTheme.typography.bodySmall,
+                            Text("Change app appearance",
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     Switch(
                         checked = darkTheme,
-                        onCheckedChange = { darkTheme = it }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            PreferenceSectionTitle(title = "Notifications")
-
-            PreferenceCard {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("🔔", fontSize = 22.sp)
-                        Column {
-                            Text("Push notifications", style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold)
-                            Text("Trip reminders and alerts", style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        onCheckedChange = { v ->
+                            darkTheme = v
+                            prefs.edit().putBoolean(KEY_DARK_MODE, v).apply()
+                            onDarkModeChange(v)
                         }
-                    }
-                    Switch(
-                        checked = notificationsEnabled,
-                        onCheckedChange = { notificationsEnabled = it }
                     )
                 }
             }
@@ -280,14 +266,9 @@ fun PreferenceCard(content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            content = content
-        )
+        Column(modifier = Modifier.padding(16.dp), content = content)
     }
 }

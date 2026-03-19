@@ -14,9 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import java.util.Calendar
@@ -66,7 +68,7 @@ fun EditActivityScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit activity", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.edit_activity), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -93,13 +95,13 @@ fun EditActivityScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = true,
                         onClick = { onNavigateBack() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -111,13 +113,13 @@ fun EditActivityScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
                 FloatingActionButton(
@@ -148,7 +150,7 @@ fun EditActivityScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Edit activity",
+                text = stringResource(R.string.edit_activity),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -157,10 +159,10 @@ fun EditActivityScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it; titleError = false; viewModel.clearError() },
-                label = { Text("Title") },
+                label = { Text(stringResource(R.string.title)) },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 isError = titleError,
-                supportingText = { if (titleError) Text("This field is required") },
+                supportingText = { if (titleError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -169,7 +171,7 @@ fun EditActivityScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it; viewModel.clearError() },
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.description)) },
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -179,7 +181,7 @@ fun EditActivityScreen(
             )
 
             Text(
-                text = "Date & time",
+                text = stringResource(R.string.date_and_time),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -188,7 +190,8 @@ fun EditActivityScreen(
             OutlinedTextField(
                 value = date,
                 onValueChange = { },
-                label = { Text("Date") },
+                label = { Text(stringResource(R.string.date)) },
+                placeholder = { Text(stringResource(R.string.select_date)) },
                 leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                 trailingIcon = {
                     Icon(
@@ -216,7 +219,8 @@ fun EditActivityScreen(
             OutlinedTextField(
                 value = time,
                 onValueChange = { },
-                label = { Text("Time") },
+                label = { Text(stringResource(R.string.time)) },
+                placeholder = { Text(stringResource(R.string.select_time)) },
                 leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                 trailingIcon = {
                     Icon(
@@ -274,7 +278,7 @@ fun EditActivityScreen(
             ) {
                 Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Save changes", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(stringResource(R.string.save_changes), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
 
             OutlinedButton(
@@ -282,7 +286,7 @@ fun EditActivityScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Cancel", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.cancel), fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(modifier = Modifier.height(8.dp))

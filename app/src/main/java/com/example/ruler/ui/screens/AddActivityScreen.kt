@@ -14,9 +14,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+import com.example.ruler.R
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import java.util.Calendar
 
@@ -70,7 +73,7 @@ fun AddActivityScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New activity", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.new_activity), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -97,13 +100,13 @@ fun AddActivityScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = true,
                         onClick = { onNavigateBack() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -115,13 +118,13 @@ fun AddActivityScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
                 FloatingActionButton(
@@ -152,7 +155,7 @@ fun AddActivityScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Activity info",
+                text = stringResource(R.string.activity_info),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -161,11 +164,11 @@ fun AddActivityScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it; titleError = false; viewModel.clearError() },
-                label = { Text("Title") },
-                placeholder = { Text("e.g. Visit museum") },
+                label = { Text(stringResource(R.string.title)) },
+                placeholder = { Text(stringResource(R.string.placeholder_title)) },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 isError = titleError,
-                supportingText = { if (titleError) Text("This field is required") },
+                supportingText = { if (titleError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -174,8 +177,8 @@ fun AddActivityScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it; viewModel.clearError() },
-                label = { Text("Description") },
-                placeholder = { Text("Activity details...") },
+                label = { Text(stringResource(R.string.description)) },
+                placeholder = { Text(stringResource(R.string.placeholder_description)) },
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -185,7 +188,7 @@ fun AddActivityScreen(
             )
 
             Text(
-                text = "Date & time",
+                text = stringResource(R.string.date_and_time),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -194,8 +197,8 @@ fun AddActivityScreen(
             OutlinedTextField(
                 value = date,
                 onValueChange = { },
-                label = { Text("Date") },
-                placeholder = { Text("Select a date") },
+                label = { Text(stringResource(R.string.date)) },
+                placeholder = { Text(stringResource(R.string.select_date)) },
                 leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                 trailingIcon = {
                     Icon(
@@ -205,7 +208,7 @@ fun AddActivityScreen(
                     )
                 },
                 isError = dateError,
-                supportingText = { if (dateError) Text("This field is required") },
+                supportingText = { if (dateError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { datePickerDialog.show() },
@@ -226,18 +229,18 @@ fun AddActivityScreen(
             OutlinedTextField(
                 value = time,
                 onValueChange = { },
-                label = { Text("Time") },
-                placeholder = { Text("Select a time") },
-                leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                label = { Text(stringResource(R.string.time)) },
+                placeholder = { Text(stringResource(R.string.select_time)) },
+                leadingIcon = { Icon(Icons.Default.Build, contentDescription = null) },
                 trailingIcon = {
                     Icon(
-                        Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Open time picker",
+                        Icons.Default.Build,
+                        contentDescription = "Open clock",
                         modifier = Modifier.clickable { timePickerDialog.show() }
                     )
                 },
                 isError = timeError,
-                supportingText = { if (timeError) Text("This field is required") },
+                supportingText = { if (timeError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { timePickerDialog.show() },
@@ -255,52 +258,38 @@ fun AddActivityScreen(
                 )
             )
 
-            error?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
-                    titleError = title.isBlank()
-                    dateError = date.isBlank()
-                    timeError = time.isBlank()
-                    if (!titleError && !dateError && !timeError) {
-                        viewModel.addActivity(
-                            tripId = tripId,
-                            title = title,
-                            description = description,
-                            date = date,
-                            time = time
-                        )
-                        if (viewModel.errorMessage.value == null) onNavigateBack()
+                    var hasError = false
+                    if (title.isBlank()) { titleError = true; hasError = true }
+                    if (date.isBlank()) { dateError = true; hasError = true }
+                    if (time.isBlank()) { timeError = true; hasError = true }
+
+                    if (!hasError) {
+                        viewModel.addActivity(tripId, title, description, date, time)
+                        onNavigateBack()
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Add activity", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-            }
-
-            OutlinedButton(
-                onClick = onNavigateBack,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Cancel", fontWeight = FontWeight.SemiBold)
+                Icon(Icons.Default.Check, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.save_activity), fontSize = 16.sp, fontWeight = FontWeight.Bold)
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (error != null) {
+                Text(
+                    text = error!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
     }
 }
