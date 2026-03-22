@@ -9,9 +9,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import com.example.ruler.domain.Trip
 import com.example.ruler.ui.viewmodels.TripListViewModel
 
@@ -32,7 +34,7 @@ fun TripOptionsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Trip details", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.trip_details), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -59,13 +61,13 @@ fun TripOptionsScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = true,
                         onClick = { onNavigateBack() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -77,13 +79,13 @@ fun TripOptionsScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
 
@@ -157,19 +159,19 @@ fun TripOptionsScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        TripInfoRow(label = "Title", value = trip.title)
+                        TripInfoRow(label = stringResource(R.string.title), value = trip.title)
                         HorizontalDivider()
-                        TripInfoRow(label = "Destination", value = trip.destination)
+                        TripInfoRow(label = stringResource(R.string.destination), value = trip.destination)
                         HorizontalDivider()
-                        TripInfoRow(label = "Description", value = trip.description)
+                        TripInfoRow(label = stringResource(R.string.description), value = trip.description)
                         HorizontalDivider()
-                        TripInfoRow(label = "Budget", value = trip.budget)
+                        TripInfoRow(label = stringResource(R.string.budget), value = trip.budget)
                         HorizontalDivider()
-                        TripInfoRow(label = "Start date", value = trip.startDate)
+                        TripInfoRow(label = stringResource(R.string.start_date), value = trip.startDate)
                         HorizontalDivider()
-                        TripInfoRow(label = "End date", value = trip.endDate)
+                        TripInfoRow(label = stringResource(R.string.end_date), value = trip.endDate)
                         HorizontalDivider()
-                        TripInfoRow(label = "Emoji", value = trip.emoji)
+                        TripInfoRow(label = stringResource(R.string.trip_emoji), value = trip.emoji)
                     }
                 }
 
@@ -196,7 +198,7 @@ fun TripOptionsScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Delete", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.delete), fontWeight = FontWeight.SemiBold)
                     }
 
                     Button(
@@ -213,7 +215,7 @@ fun TripOptionsScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Edit", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.edit_trip), fontWeight = FontWeight.SemiBold)
                     }
                 }
 

@@ -11,9 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.ui.viewmodels.TripListViewModel
@@ -48,7 +50,11 @@ fun TripDetailScreen(
     }
 
     var selectedTab by remember { mutableStateOf(0) }
-    val tabs = listOf("Itinerary", "Stats", "Gallery")
+    val tabs = listOf(
+        stringResource(R.string.itinerary),
+        stringResource(R.string.stats),
+        stringResource(R.string.gallery)
+    )
 
     Scaffold(
         topBar = {
@@ -80,13 +86,13 @@ fun TripDetailScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = true,
                         onClick = { },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -98,16 +104,15 @@ fun TripDetailScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
-
                 FloatingActionButton(
                     onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
@@ -127,7 +132,6 @@ fun TripDetailScreen(
             }
         }
     ) { paddingValues ->
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -202,7 +206,7 @@ fun TripDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Activities",
+                                text = stringResource(R.string.activities),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -212,7 +216,7 @@ fun TripDetailScreen(
                             ) {
                                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Add", style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(R.string.add), style = MaterialTheme.typography.labelLarge)
                             }
                         }
                     }
@@ -233,7 +237,7 @@ fun TripDetailScreen(
                 2 -> {
                     item {
                         Text(
-                            text = "Tap the gallery icon to see all photos",
+                            text = stringResource(R.string.gallery_hint),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(16.dp)
@@ -285,11 +289,8 @@ fun ActivityCard(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        imageVector = if (activity.isDone) {
-                            Icons.Default.CheckCircle
-                        } else {
-                            Icons.Default.RadioButtonUnchecked
-                        },
+                        imageVector = if (activity.isDone) Icons.Default.CheckCircle
+                        else Icons.Default.RadioButtonUnchecked,
                         contentDescription = "Toggle done",
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(18.dp)
@@ -313,9 +314,7 @@ fun ActivityCard(
                 .fillMaxWidth()
                 .padding(bottom = 4.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
@@ -349,25 +348,13 @@ fun ActivityCard(
                     )
                 }
                 Row {
-                    IconButton(
-                        onClick = onDeleteClick,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Delete",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    IconButton(onClick = onDeleteClick, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    IconButton(
-                        onClick = { onEditClick() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Edit",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    IconButton(onClick = { onEditClick() }, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -388,7 +375,7 @@ fun StatsSection(trip: Trip, activityCount: Int) {
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "Trip overview",
+            text = stringResource(R.string.trip_overview),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
@@ -396,15 +383,15 @@ fun StatsSection(trip: Trip, activityCount: Int) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatCard(modifier = Modifier.weight(1f), label = "Start", value = trip.startDate, icon = "📅")
-            StatCard(modifier = Modifier.weight(1f), label = "Activities", value = "$activityCount", icon = "📍")
+            StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.start), value = trip.startDate, icon = "📅")
+            StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.activities), value = "$activityCount", icon = "📍")
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            StatCard(modifier = Modifier.weight(1f), label = "End", value = trip.endDate, icon = "🧭")
-            StatCard(modifier = Modifier.weight(1f), label = "Trip", value = trip.emoji, icon = "✈️")
+            StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.end), value = trip.endDate, icon = "🧭")
+            StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.trip), value = trip.emoji, icon = "✈️")
         }
     }
 }
@@ -414,9 +401,7 @@ fun StatCard(modifier: Modifier, label: String, value: String, icon: String) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(

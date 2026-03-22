@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 
 data class TripPhoto(
     val id: Int,
@@ -50,7 +52,7 @@ fun GalleryScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Gallery", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.gallery), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -77,13 +79,13 @@ fun GalleryScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -94,14 +96,14 @@ fun GalleryScreen(
                     NavigationBarItem(
                         selected = true,
                         onClick = { },
-                        icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") }, // face
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
 
@@ -130,7 +132,6 @@ fun GalleryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // cabecera con info del álbum
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -160,7 +161,6 @@ fun GalleryScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // botón añadir foto
             Button(
                 onClick = { },
                 modifier = Modifier
@@ -176,7 +176,7 @@ fun GalleryScreen(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Add photo", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.add_photo), fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -222,7 +222,6 @@ fun PhotoCard(photo: TripPhoto) {
             )
         }
 
-        // botón borrar — solo interfaz
         IconButton(
             onClick = { },
             modifier = Modifier

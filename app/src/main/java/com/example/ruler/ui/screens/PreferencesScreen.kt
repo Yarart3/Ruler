@@ -14,9 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import java.util.Calendar
 
 private const val PREFS_NAME = "ruler_prefs"
@@ -63,7 +65,7 @@ fun PreferencesScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Preferences", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.preferences), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -85,19 +87,19 @@ fun PreferencesScreen(
                 ) {
                     NavigationBarItem(selected = false, onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) })
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) })
                     NavigationBarItem(selected = false, onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) })
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) })
                     NavigationBarItem(selected = false, onClick = { },
                         icon = { Spacer(modifier = Modifier.size(48.dp)) },
                         label = { Text("") })
                     NavigationBarItem(selected = false, onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) })
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) })
                     NavigationBarItem(selected = false, onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) })
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) })
                 }
                 FloatingActionButton(
                     onClick = { onNavigateToNewTrip() },
@@ -123,8 +125,7 @@ fun PreferencesScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            PreferenceSectionTitle(title = "Profile")
+            PreferenceSectionTitle(title = stringResource(R.string.profile_section))
             PreferenceCard {
                 OutlinedTextField(
                     value = username,
@@ -132,7 +133,7 @@ fun PreferencesScreen(
                         username = v
                         prefs.edit().putString(KEY_USERNAME, v).apply()
                     },
-                    label = { Text("Username") },
+                    label = { Text(stringResource(R.string.username)) },
                     leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
@@ -142,8 +143,8 @@ fun PreferencesScreen(
                 OutlinedTextField(
                     value = dateOfBirth,
                     onValueChange = { },
-                    label = { Text("Date of birth") },
-                    placeholder = { Text("Select a date") },
+                    label = { Text(stringResource(R.string.date_of_birth)) },
+                    placeholder = { Text(stringResource(R.string.select_date)) },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     trailingIcon = {
                         Icon(
@@ -171,7 +172,7 @@ fun PreferencesScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            PreferenceSectionTitle(title = "Language & Region")
+            PreferenceSectionTitle(title = stringResource(R.string.language_region))
             PreferenceCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -184,7 +185,8 @@ fun PreferencesScreen(
                     ) {
                         Text("🌍", fontSize = 22.sp)
                         Column {
-                            Text("Language", style = MaterialTheme.typography.titleSmall,
+                            Text(stringResource(R.string.language),
+                                style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold)
                             Text(languageLabel, style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -216,7 +218,7 @@ fun PreferencesScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            PreferenceSectionTitle(title = "Appearance")
+            PreferenceSectionTitle(title = stringResource(R.string.appearance))
             PreferenceCard {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -229,9 +231,10 @@ fun PreferencesScreen(
                     ) {
                         Text("🌙", fontSize = 22.sp)
                         Column {
-                            Text("Dark mode", style = MaterialTheme.typography.titleSmall,
+                            Text(stringResource(R.string.dark_mode),
+                                style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.SemiBold)
-                            Text("Change app appearance",
+                            Text(stringResource(R.string.change_appearance),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }

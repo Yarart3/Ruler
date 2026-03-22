@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,7 +36,7 @@ fun AboutScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("About", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.about), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -57,15 +58,15 @@ fun AboutScreen(
                 ) {
                     NavigationBarItem(
                         selected = false,
-                        onClick = { onNavigateToHome() } ,
+                        onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -76,17 +77,16 @@ fun AboutScreen(
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToGallery() },
-                        icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") }, // face
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
-
                 FloatingActionButton(
                     onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
@@ -106,7 +106,6 @@ fun AboutScreen(
             }
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -139,13 +138,13 @@ fun AboutScreen(
                         )
                     }
                     Text(
-                        text = "Ruler",
+                        text = stringResource(R.string.app_name),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text = "Your travel companion",
+                        text = stringResource(R.string.app_tagline),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                     )
@@ -168,70 +167,64 @@ fun AboutScreen(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                PreferenceSectionTitle(title = "Team")
+                PreferenceSectionTitle(title = stringResource(R.string.team))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        TeamMemberRow(emoji = "👨‍💻", name = "Nel Banqué Torné", role = "Android Developer")
+                        TeamMemberRow(emoji = "👨‍💻", name = "Nel Banqué Torné", role = stringResource(R.string.android_developer))
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                        TeamMemberRow(emoji = "👨‍💻", name = "Gerard Guarro Pérez", role = "Android Developer")
+                        TeamMemberRow(emoji = "👨‍💻", name = "Gerard Guarro Pérez", role = stringResource(R.string.android_developer))
                     }
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                PreferenceSectionTitle(title = "Technical info")
+                PreferenceSectionTitle(title = stringResource(R.string.technical_info))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        TechInfoRow(label = "Version", value = "1.0.0")
+                        TechInfoRow(label = stringResource(R.string.version), value = "1.0.0")
                         HorizontalDivider()
-                        TechInfoRow(label = "Platform", value = "Android")
+                        TechInfoRow(label = stringResource(R.string.platform), value = "Android")
                         HorizontalDivider()
-                        TechInfoRow(label = "Language", value = "Kotlin + Jetpack Compose")
+                        TechInfoRow(label = stringResource(R.string.language), value = "Kotlin + Jetpack Compose")
                         HorizontalDivider()
-                        TechInfoRow(label = "Min SDK", value = "Android 8.0 (API 26)")
+                        TechInfoRow(label = stringResource(R.string.min_sdk), value = "Android 8.0 (API 26)")
                     }
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                PreferenceSectionTitle(title = "License")
+                PreferenceSectionTitle(title = stringResource(R.string.license))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "MIT License",
+                            text = stringResource(R.string.mit_license),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Copyright © 2025 Ruler Team. Free to use and modify.",
+                            text = stringResource(R.string.license_text),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -245,13 +238,13 @@ fun AboutScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Terms & Conditions", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.terms_and_conditions), fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Made with ❤️ at Campus Igualada · UdL",
+                    text = stringResource(R.string.made_with_love),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -272,35 +265,18 @@ fun TeamMemberRow(emoji: String, name: String, role: String) {
     ) {
         Text(emoji, fontSize = 28.sp)
         Column {
-            Text(
-                text = name,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = role,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = name, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+            Text(text = role, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
 fun TechInfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.SemiBold
-        )
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(text = label, style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
     }
 }

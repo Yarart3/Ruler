@@ -9,9 +9,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import com.example.ruler.domain.TripActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +31,7 @@ fun ActivityDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Activity detail", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.activity_detail), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -56,13 +58,13 @@ fun ActivityDetailScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = true,
                         onClick = { onNavigateBack() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -74,13 +76,13 @@ fun ActivityDetailScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
 
@@ -154,15 +156,15 @@ fun ActivityDetailScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        ActivityInfoRow(label = "Time", value = activity.time)
+                        ActivityInfoRow(label = stringResource(R.string.time), value = activity.time)
                         HorizontalDivider()
-                        ActivityInfoRow(label = "Activity", value = activity.title)
+                        ActivityInfoRow(label = stringResource(R.string.activity_label), value = activity.title)
                         HorizontalDivider()
-                        ActivityInfoRow(label = "Description", value = activity.description)
+                        ActivityInfoRow(label = stringResource(R.string.description), value = activity.description)
                         HorizontalDivider()
-                        ActivityInfoRow(label = "Date", value = activity.date)
+                        ActivityInfoRow(label = stringResource(R.string.date), value = activity.date)
                         HorizontalDivider()
-                        ActivityInfoRow(label = "Trip ID", value = activity.tripId)
+                        ActivityInfoRow(label = stringResource(R.string.trip_id), value = activity.tripId)
                     }
                 }
 
@@ -186,7 +188,7 @@ fun ActivityDetailScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Delete", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.delete), fontWeight = FontWeight.SemiBold)
                     }
 
                     Button(
@@ -203,7 +205,7 @@ fun ActivityDetailScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Edit", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.edit_activity), fontWeight = FontWeight.SemiBold)
                     }
                 }
 

@@ -17,11 +17,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import java.util.Calendar
 
@@ -81,7 +83,7 @@ fun NewTripScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("New trip", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.new_trip), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -108,13 +110,13 @@ fun NewTripScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -126,16 +128,15 @@ fun NewTripScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
-
                 FloatingActionButton(
                     onClick = { },
                     modifier = Modifier
@@ -155,7 +156,6 @@ fun NewTripScreen(
             }
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -165,7 +165,7 @@ fun NewTripScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Trip info",
+                text = stringResource(R.string.trip_info),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -173,16 +173,12 @@ fun NewTripScreen(
 
             OutlinedTextField(
                 value = title,
-                onValueChange = {
-                    title = it
-                    titleError = false
-                    viewModel.clearError()
-                },
-                label = { Text("Trip name") },
-                placeholder = { Text("e.g. Summer in Japan") },
+                onValueChange = { title = it; titleError = false; viewModel.clearError() },
+                label = { Text(stringResource(R.string.trip_name)) },
+                placeholder = { Text(stringResource(R.string.placeholder_trip_name)) },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 isError = titleError,
-                supportingText = { if (titleError) Text("This field is required") },
+                supportingText = { if (titleError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -190,16 +186,12 @@ fun NewTripScreen(
 
             OutlinedTextField(
                 value = destination,
-                onValueChange = {
-                    destination = it
-                    destinationError = false
-                    viewModel.clearError()
-                },
-                label = { Text("Destination") },
-                placeholder = { Text("e.g. Tokyo, Japan") },
+                onValueChange = { destination = it; destinationError = false; viewModel.clearError() },
+                label = { Text(stringResource(R.string.destination)) },
+                placeholder = { Text(stringResource(R.string.placeholder_destination)) },
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                 isError = destinationError,
-                supportingText = { if (destinationError) Text("This field is required") },
+                supportingText = { if (destinationError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
@@ -207,16 +199,12 @@ fun NewTripScreen(
 
             OutlinedTextField(
                 value = emoji,
-                onValueChange = {
-                    emoji = it
-                    emojiError = false
-                    viewModel.clearError()
-                },
-                label = { Text("Trip emoji") },
-                placeholder = { Text("e.g. ✈️") },
+                onValueChange = { emoji = it; emojiError = false; viewModel.clearError() },
+                label = { Text(stringResource(R.string.trip_emoji)) },
+                placeholder = { Text(stringResource(R.string.placeholder_emoji)) },
                 leadingIcon = { Icon(Icons.Default.Face, contentDescription = null) },
                 isError = emojiError,
-                supportingText = { if (emojiError) Text("This field is required") },
+                supportingText = { if (emojiError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(emojiFocusRequester)
@@ -235,7 +223,7 @@ fun NewTripScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Dates",
+                text = stringResource(R.string.dates),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -248,21 +236,16 @@ fun NewTripScreen(
                 OutlinedTextField(
                     value = startDate,
                     onValueChange = { },
-                    label = { Text("Start date") },
-                    placeholder = { Text("dd/MM/yyyy") },
+                    label = { Text(stringResource(R.string.start_date)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_date)) },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     trailingIcon = {
-                        Icon(
-                            Icons.Default.DateRange,
-                            contentDescription = null,
-                            modifier = Modifier.clickable { startDatePickerDialog.show() }
-                        )
+                        Icon(Icons.Default.DateRange, contentDescription = null,
+                            modifier = Modifier.clickable { startDatePickerDialog.show() })
                     },
                     isError = startDateError,
-                    supportingText = { if (startDateError) Text("Required") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { startDatePickerDialog.show() },
+                    supportingText = { if (startDateError) Text(stringResource(R.string.required)) },
+                    modifier = Modifier.weight(1f).clickable { startDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
                     readOnly = true,
                     enabled = false,
@@ -279,21 +262,16 @@ fun NewTripScreen(
                 OutlinedTextField(
                     value = endDate,
                     onValueChange = { },
-                    label = { Text("End date") },
-                    placeholder = { Text("dd/MM/yyyy") },
+                    label = { Text(stringResource(R.string.end_date)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_date)) },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     trailingIcon = {
-                        Icon(
-                            Icons.Default.DateRange,
-                            contentDescription = null,
-                            modifier = Modifier.clickable { endDatePickerDialog.show() }
-                        )
+                        Icon(Icons.Default.DateRange, contentDescription = null,
+                            modifier = Modifier.clickable { endDatePickerDialog.show() })
                     },
                     isError = endDateError,
-                    supportingText = { if (endDateError) Text("Required") },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { endDatePickerDialog.show() },
+                    supportingText = { if (endDateError) Text(stringResource(R.string.required)) },
+                    modifier = Modifier.weight(1f).clickable { endDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
                     readOnly = true,
                     enabled = false,
@@ -312,7 +290,7 @@ fun NewTripScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Budget & notes",
+                text = stringResource(R.string.budget_and_notes),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -320,12 +298,9 @@ fun NewTripScreen(
 
             OutlinedTextField(
                 value = budget,
-                onValueChange = {
-                    budget = it
-                    viewModel.clearError()
-                },
-                label = { Text("Estimated budget") },
-                placeholder = { Text("e.g. €1500") },
+                onValueChange = { budget = it; viewModel.clearError() },
+                label = { Text(stringResource(R.string.estimated_budget)) },
+                placeholder = { Text(stringResource(R.string.placeholder_budget)) },
                 leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -334,26 +309,18 @@ fun NewTripScreen(
 
             OutlinedTextField(
                 value = notes,
-                onValueChange = {
-                    notes = it
-                    viewModel.clearError()
-                },
-                label = { Text("Notes") },
-                placeholder = { Text("Any extra info about the trip...") },
+                onValueChange = { notes = it; viewModel.clearError() },
+                label = { Text(stringResource(R.string.notes)) },
+                placeholder = { Text(stringResource(R.string.placeholder_notes)) },
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
+                modifier = Modifier.fillMaxWidth().height(120.dp),
                 shape = RoundedCornerShape(12.dp),
                 maxLines = 4
             )
 
             error?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(text = it, color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -376,20 +343,16 @@ fun NewTripScreen(
                             budget = budget,
                             emoji = emoji
                         )
-                        if (viewModel.errorMessage.value == null) {
-                            onNavigateBack()
-                        }
+                        if (viewModel.errorMessage.value == null) onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Create trip", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(stringResource(R.string.create_trip), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
 
             OutlinedButton(
@@ -397,7 +360,7 @@ fun NewTripScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Cancel", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.cancel), fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
