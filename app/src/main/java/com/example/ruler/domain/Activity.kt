@@ -6,5 +6,6 @@ data class TripActivity(
     val title: String,
     val description: String,
     val date: String,
-    val time: String
+    val time: String,
+    val isDone: Boolean = false
 )

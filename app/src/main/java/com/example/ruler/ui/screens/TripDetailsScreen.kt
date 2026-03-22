@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.sp
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.ui.viewmodels.TripListViewModel
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +39,9 @@ fun TripDetailScreen(
     val trips by viewModel.trips.collectAsState()
     val activities by viewModel.activities.collectAsState()
     val trip = trips.find { it.id == tripId } ?: trips.firstOrNull() ?: return
+    val sortedActivities = remember(activities) {
+        activities.sortedWith(compareBy({ parseActivityDateTime(it) }, { it.id }))
+    }
 
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
@@ -211,10 +216,11 @@ fun TripDetailScreen(
                             }
                         }
                     }
-                    items(activities) { activity ->
+                    items(sortedActivities) { activity ->
                         ActivityCard(
                             activity = activity,
-                            isLast = activity == activities.lastOrNull(),
+                            isLast = activity == sortedActivities.lastOrNull(),
+                            onToggleDoneClick = { viewModel.toggleActivityDone(activity.id) },
                             onDeleteClick = { viewModel.deleteActivity(activity.id) },
                             onActivityClick = { onNavigateToActivityDetail(activity) },
                             onEditClick = { onNavigateToEditActivity(activity) }
@@ -245,6 +251,7 @@ fun TripDetailScreen(
 fun ActivityCard(
     activity: TripActivity,
     isLast: Boolean = false,
+    onToggleDoneClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onActivityClick: (TripActivity) -> Unit = {},
     onEditClick: () -> Unit = {}
@@ -273,12 +280,21 @@ fun ActivityCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(18.dp)
-                )
+                IconButton(
+                    onClick = onToggleDoneClick,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = if (activity.isDone) {
+                            Icons.Default.CheckCircle
+                        } else {
+                            Icons.Default.RadioButtonUnchecked
+                        },
+                        contentDescription = "Toggle done",
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
             if (!isLast) {
                 Box(
@@ -358,6 +374,12 @@ fun ActivityCard(
         }
     }
 }
+
+private fun parseActivityDateTime(activity: TripActivity) = runCatching {
+    SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).apply {
+        isLenient = false
+    }.parse("${activity.date} ${activity.time}")
+}.getOrNull()
 
 @Composable
 fun StatsSection(trip: Trip, activityCount: Int) {
