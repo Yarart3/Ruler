@@ -104,4 +104,21 @@
     <string name="activity_label">Activitat</string>
     <string name="trip_id">ID del viatge</string>
     <string name="add_photo">Afegir foto</string>
+    <string name="decline">Rebutjar</string>
+    <string name="accept">Acceptar</string>
+    <string name="last_updated">Última actualització: Gener 2025</string>
+    <string name="terms_1_title">1. Acceptació dels termes</string>
+    <string name="terms_1_content">En descarregar o utilitzar Ruler, acceptes estar subjecte a aquests Termes i Condicions. Si no estàs d\'acord, no utilitzis l\'aplicació.</string>
+    <string name="terms_2_title">2. Ús de l\'app</string>
+    <string name="terms_2_content">Ruler és una aplicació de planificació de viatges per a ús personal i no comercial. Acceptes utilitzar-la només per a fins legals.</string>
+    <string name="terms_3_title">3. Dades de l\'usuari</string>
+    <string name="terms_3_content">Ruler emmagatzema les dades localment al teu dispositiu. No recollim ni compartim la teva informació personal amb tercers.</string>
+    <string name="terms_4_title">4. Propietat intel·lectual</string>
+    <string name="terms_4_content">Tot el contingut de Ruler és propietat de l\'equip Ruler i està protegit sota la llicència MIT. No pots reproduir cap part sense permís.</string>
+    <string name="terms_5_title">5. Exempció de responsabilitat</string>
+    <string name="terms_5_content">Ruler es proporciona tal com és, sense garanties. No som responsables de cap inexactitud o dany derivat de l\'ús de l\'aplicació.</string>
+    <string name="terms_6_title">6. Canvis als termes</string>
+    <string name="terms_6_content">Ens reservem el dret de modificar aquests termes en qualsevol moment. L\'ús continuat de l\'app implica l\'acceptació dels nous termes.</string>
+    <string name="terms_7_title">7. Contacte</string>
+    <string name="terms_7_content">Si tens preguntes sobre aquests termes, contacta\'ns a: ruler.app@udl.cat</string>
 </resources>

@@ -104,4 +104,21 @@
     <string name="activity_label">Actividad</string>
     <string name="activity_detail">Detalle de la actividad</string>
     <string name="add_photo">Añadir foto</string>
+    <string name="decline">Rechazar</string>
+    <string name="accept">Aceptar</string>
+    <string name="last_updated">Última actualización: Enero 2025</string>
+    <string name="terms_1_title">1. Aceptación de los términos</string>
+    <string name="terms_1_content">Al descargar o usar Ruler, aceptas estar sujeto a estos Términos y Condiciones. Si no estás de acuerdo, no uses la aplicación.</string>
+    <string name="terms_2_title">2. Uso de la app</string>
+    <string name="terms_2_content">Ruler es una aplicación de planificación de viajes para uso personal y no comercial. Aceptas usarla solo con fines legales.</string>
+    <string name="terms_3_title">3. Datos del usuario</string>
+    <string name="terms_3_content">Ruler almacena los datos localmente en tu dispositivo. No recopilamos ni compartimos tu información personal con terceros.</string>
+    <string name="terms_4_title">4. Propiedad intelectual</string>
+    <string name="terms_4_content">Todo el contenido de Ruler es propiedad del equipo Ruler y está protegido bajo la licencia MIT. No puedes reproducir ninguna parte sin permiso.</string>
+    <string name="terms_5_title">5. Exención de responsabilidad</string>
+    <string name="terms_5_content">Ruler se proporciona tal como está, sin garantías. No somos responsables de ninguna inexactitud o daño derivado del uso de la aplicación.</string>
+    <string name="terms_6_title">6. Cambios en los términos</string>
+    <string name="terms_6_content">Nos reservamos el derecho de modificar estos términos en cualquier momento. El uso continuado de la app implica la aceptación de los nuevos términos.</string>
+    <string name="terms_7_title">7. Contacto</string>
+    <string name="terms_7_content">Si tienes preguntas sobre estos términos, contáctanos en: ruler.app@udl.cat</string>
 </resources>
