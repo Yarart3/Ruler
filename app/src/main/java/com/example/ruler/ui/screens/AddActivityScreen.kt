@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.sp
 
 import com.example.ruler.R
 import com.example.ruler.ui.viewmodels.TripListViewModel
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +40,7 @@ fun AddActivityScreen(
 ) {
     val context = LocalContext.current
     val error by viewModel.errorMessage.collectAsState()
+    val trip = viewModel.getTripById(tripId)
 
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -69,6 +72,15 @@ fun AddActivityScreen(
         },
         cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true
     )
+
+    val isDateOutOfRange = trip != null &&
+        date.isNotBlank() &&
+        !isDateWithinTripRange(date, trip.startDate, trip.endDate)
+    val dateRangeError = if (isDateOutOfRange && trip != null) {
+        "La fecha debe estar dentro del viaje (${trip.startDate} - ${trip.endDate})"
+    } else {
+        null
+    }
 
     Scaffold(
         topBar = {
@@ -207,8 +219,13 @@ fun AddActivityScreen(
                         modifier = Modifier.clickable { datePickerDialog.show() }
                     )
                 },
-                isError = dateError,
-                supportingText = { if (dateError) Text(stringResource(R.string.required_field)) },
+                isError = dateError || isDateOutOfRange,
+                supportingText = {
+                    when {
+                        dateError -> Text(stringResource(R.string.required_field))
+                        dateRangeError != null -> Text(dateRangeError)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { datePickerDialog.show() },
@@ -217,7 +234,7 @@ fun AddActivityScreen(
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledBorderColor = if (dateError) MaterialTheme.colorScheme.error
+                    disabledBorderColor = if (dateError || isDateOutOfRange) MaterialTheme.colorScheme.error
                     else MaterialTheme.colorScheme.outline,
                     disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
@@ -272,6 +289,7 @@ fun AddActivityScreen(
                         onNavigateBack()
                     }
                 },
+                enabled = !isDateOutOfRange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -292,4 +310,18 @@ fun AddActivityScreen(
             }
         }
     }
+}
+
+private fun isDateWithinTripRange(
+    date: String,
+    startDate: String,
+    endDate: String
+): Boolean {
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+        isLenient = false
+    }
+    val parsedDate = runCatching { formatter.parse(date) }.getOrNull() ?: return false
+    val parsedStart = runCatching { formatter.parse(startDate) }.getOrNull() ?: return false
+    val parsedEnd = runCatching { formatter.parse(endDate) }.getOrNull() ?: return false
+    return !parsedDate.before(parsedStart) && !parsedDate.after(parsedEnd)
 }

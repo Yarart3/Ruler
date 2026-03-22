@@ -159,6 +159,14 @@ class TripListViewModel : ViewModel() {
         clearError()
         Log.i(TAG, "Actividad actualizada: ${activity.id}")
     }
+
+    fun toggleActivityDone(id: String) {
+        val activity = _activities.value.find { it.id == id } ?: return
+        repository.updateActivity(activity.copy(isDone = !activity.isDone))
+        selectedTripId?.let { _activities.value = repository.getActivitiesByTrip(it) }
+        Log.i(TAG, "Estado de actividad actualizado: $id")
+    }
+
     fun deleteActivity(id: String) {
         repository.deleteActivity(id)
         selectedTripId?.let { _activities.value = repository.getActivitiesByTrip(it) }

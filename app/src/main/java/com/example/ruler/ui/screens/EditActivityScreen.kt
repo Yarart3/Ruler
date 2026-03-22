@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.sp
 import com.example.ruler.R
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.ui.viewmodels.TripListViewModel
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +40,7 @@ fun EditActivityScreen(
 ) {
     val context = LocalContext.current
     val error by viewModel.errorMessage.collectAsState()
+    val trip = viewModel.getTripById(activity.tripId)
 
     var title by remember { mutableStateOf(activity.title) }
     var description by remember { mutableStateOf(activity.description) }
@@ -64,6 +67,15 @@ fun EditActivityScreen(
         },
         cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true
     )
+
+    val isDateOutOfRange = trip != null &&
+        date.isNotBlank() &&
+        !isDateWithinTripRange(date, trip.startDate, trip.endDate)
+    val dateRangeError = if (isDateOutOfRange && trip != null) {
+        "La fecha debe estar dentro del viaje (${trip.startDate} - ${trip.endDate})"
+    } else {
+        null
+    }
 
     Scaffold(
         topBar = {
@@ -200,6 +212,12 @@ fun EditActivityScreen(
                         modifier = Modifier.clickable { datePickerDialog.show() }
                     )
                 },
+                isError = isDateOutOfRange,
+                supportingText = {
+                    if (dateRangeError != null) {
+                        Text(dateRangeError)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { datePickerDialog.show() },
@@ -208,7 +226,8 @@ fun EditActivityScreen(
                 enabled = false,
                 colors = OutlinedTextFieldDefaults.colors(
                     disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledBorderColor = MaterialTheme.colorScheme.outline,
+                    disabledBorderColor = if (isDateOutOfRange) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.outline,
                     disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                     disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
                     disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -270,6 +289,7 @@ fun EditActivityScreen(
                         if (viewModel.errorMessage.value == null) onNavigateBack()
                     }
                 },
+                enabled = !isDateOutOfRange,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -292,4 +312,18 @@ fun EditActivityScreen(
             Spacer(modifier = Modifier.height(8.dp))
         }
     }
+}
+
+private fun isDateWithinTripRange(
+    date: String,
+    startDate: String,
+    endDate: String
+): Boolean {
+    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+        isLenient = false
+    }
+    val parsedDate = runCatching { formatter.parse(date) }.getOrNull() ?: return false
+    val parsedStart = runCatching { formatter.parse(startDate) }.getOrNull() ?: return false
+    val parsedEnd = runCatching { formatter.parse(endDate) }.getOrNull() ?: return false
+    return !parsedDate.before(parsedStart) && !parsedDate.after(parsedEnd)
 }
