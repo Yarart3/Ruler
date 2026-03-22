@@ -103,4 +103,21 @@
     <string name="activity_label">Activity</string>
     <string name="trip_id">Trip ID</string>
     <string name="add_photo">Add photo</string>
+    <string name="decline">Decline</string>
+    <string name="accept">Accept</string>
+    <string name="last_updated">Last updated: January 2025</string>
+    <string name="terms_1_title">1. Acceptance of Terms</string>
+    <string name="terms_1_content">By downloading or using Ruler, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use the application.</string>
+    <string name="terms_2_title">2. Use of the App</string>
+    <string name="terms_2_content">Ruler is a travel planning application intended for personal, non-commercial use. You agree to use the app only for lawful purposes and in a way that does not infringe the rights of others.</string>
+    <string name="terms_3_title">3. User Data</string>
+    <string name="terms_3_content">Ruler stores travel data locally on your device. We do not collect, transmit, or share your personal information with third parties. Your data remains private and under your control.</string>
+    <string name="terms_4_title">4. Intellectual Property</string>
+    <string name="terms_4_content">All content, design, and code within Ruler is the property of the Ruler Team and is protected under the MIT License. You may not reproduce or distribute any part of the app without permission.</string>
+    <string name="terms_5_title">5. Disclaimer</string>
+    <string name="terms_5_content">Ruler is provided as-is without any warranties. We are not responsible for any inaccuracies in travel information or any damages arising from the use of the application.</string>
+    <string name="terms_6_title">6. Changes to Terms</string>
+    <string name="terms_6_content">We reserve the right to modify these terms at any time. Continued use of the app after changes constitutes acceptance of the new terms.</string>
+    <string name="terms_7_title">7. Contact</string>
+    <string name="terms_7_content">If you have any questions about these Terms, please contact us at: ruler.app@udl.cat</string>
 </resources>
