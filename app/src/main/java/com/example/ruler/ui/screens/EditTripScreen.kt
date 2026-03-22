@@ -17,11 +17,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import com.example.ruler.domain.Trip
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import java.util.Calendar
@@ -78,7 +80,7 @@ fun EditTripScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Edit trip", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.edit_trip), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -105,13 +107,13 @@ fun EditTripScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -123,16 +125,15 @@ fun EditTripScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
-
                 FloatingActionButton(
                     onClick = { },
                     modifier = Modifier
@@ -161,7 +162,7 @@ fun EditTripScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Trip info",
+                text = stringResource(R.string.trip_info),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -170,7 +171,7 @@ fun EditTripScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it; viewModel.clearError() },
-                label = { Text("Trip name") },
+                label = { Text(stringResource(R.string.trip_name)) },
                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -180,7 +181,7 @@ fun EditTripScreen(
             OutlinedTextField(
                 value = destination,
                 onValueChange = { destination = it; viewModel.clearError() },
-                label = { Text("Destination") },
+                label = { Text(stringResource(R.string.destination)) },
                 leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -190,7 +191,7 @@ fun EditTripScreen(
             OutlinedTextField(
                 value = emoji,
                 onValueChange = { emoji = it; viewModel.clearError() },
-                label = { Text("Trip emoji") },
+                label = { Text(stringResource(R.string.trip_emoji)) },
                 leadingIcon = { Icon(Icons.Default.Face, contentDescription = null) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -210,7 +211,7 @@ fun EditTripScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it; viewModel.clearError() },
-                label = { Text("Description") },
+                label = { Text(stringResource(R.string.description)) },
                 leadingIcon = { Icon(Icons.Default.Info, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -218,7 +219,7 @@ fun EditTripScreen(
             )
 
             Text(
-                text = "Dates",
+                text = stringResource(R.string.dates),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
@@ -231,18 +232,13 @@ fun EditTripScreen(
                 OutlinedTextField(
                     value = startDate,
                     onValueChange = { },
-                    label = { Text("Start date") },
+                    label = { Text(stringResource(R.string.start_date)) },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     trailingIcon = {
-                        Icon(
-                            Icons.Default.DateRange,
-                            contentDescription = null,
-                            modifier = Modifier.clickable { startDatePickerDialog.show() }
-                        )
+                        Icon(Icons.Default.DateRange, contentDescription = null,
+                            modifier = Modifier.clickable { startDatePickerDialog.show() })
                     },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { startDatePickerDialog.show() },
+                    modifier = Modifier.weight(1f).clickable { startDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
                     readOnly = true,
                     enabled = false,
@@ -258,18 +254,13 @@ fun EditTripScreen(
                 OutlinedTextField(
                     value = endDate,
                     onValueChange = { },
-                    label = { Text("End date") },
+                    label = { Text(stringResource(R.string.end_date)) },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     trailingIcon = {
-                        Icon(
-                            Icons.Default.DateRange,
-                            contentDescription = null,
-                            modifier = Modifier.clickable { endDatePickerDialog.show() }
-                        )
+                        Icon(Icons.Default.DateRange, contentDescription = null,
+                            modifier = Modifier.clickable { endDatePickerDialog.show() })
                     },
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { endDatePickerDialog.show() },
+                    modifier = Modifier.weight(1f).clickable { endDatePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
                     readOnly = true,
                     enabled = false,
@@ -287,7 +278,7 @@ fun EditTripScreen(
             OutlinedTextField(
                 value = budget,
                 onValueChange = { budget = it; viewModel.clearError() },
-                label = { Text("Estimated budget") },
+                label = { Text(stringResource(R.string.estimated_budget)) },
                 leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -295,11 +286,8 @@ fun EditTripScreen(
             )
 
             error?.let {
-                Text(
-                    text = it,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(text = it, color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -318,19 +306,15 @@ fun EditTripScreen(
                             emoji = emoji
                         )
                     )
-                    if (viewModel.errorMessage.value == null) {
-                        onNavigateToHome()
-                    }
+                    if (viewModel.errorMessage.value == null) onNavigateToHome()
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Save changes", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(stringResource(R.string.save_changes), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
             }
 
             OutlinedButton(
@@ -338,7 +322,7 @@ fun EditTripScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Cancel", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.cancel), fontWeight = FontWeight.SemiBold)
             }
 
             Spacer(modifier = Modifier.height(8.dp))

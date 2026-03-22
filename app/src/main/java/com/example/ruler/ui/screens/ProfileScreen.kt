@@ -13,10 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +34,7 @@ fun ProfileScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.profile), fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -59,13 +61,13 @@ fun ProfileScreen(
                         selected = false,
                         onClick = { onNavigateToHome() },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToTrips() },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -77,16 +79,15 @@ fun ProfileScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = true,
                         onClick = { },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
-
                 FloatingActionButton(
                     onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
@@ -106,7 +107,6 @@ fun ProfileScreen(
             }
         }
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -161,14 +161,14 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    StatCard(modifier = Modifier.weight(1f), label = "Trips", value = "5", icon = "✈️")
-                    StatCard(modifier = Modifier.weight(1f), label = "Countries", value = "4", icon = "🌍")
-                    StatCard(modifier = Modifier.weight(1f), label = "Photos", value = "9", icon = "🖼️")
+                    StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.trips), value = "5", icon = "✈️")
+                    StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.countries), value = "4", icon = "🌍")
+                    StatCard(modifier = Modifier.weight(1f), label = stringResource(R.string.photos), value = "9", icon = "🖼️")
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                PreferenceSectionTitle(title = "Personal info")
+                PreferenceSectionTitle(title = stringResource(R.string.personal_info))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -177,19 +177,19 @@ fun ProfileScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ProfileInfoRow(label = "Full name", value = "Ruler Traveller")
+                        ProfileInfoRow(label = stringResource(R.string.full_name), value = "Ruler Traveller")
                         HorizontalDivider()
-                        ProfileInfoRow(label = "Email", value = "ruler.traveller@email.com")
+                        ProfileInfoRow(label = stringResource(R.string.email), value = "ruler.traveller@email.com")
                         HorizontalDivider()
-                        ProfileInfoRow(label = "Location", value = "Barcelona, Spain")
+                        ProfileInfoRow(label = stringResource(R.string.location), value = "Barcelona, Spain")
                         HorizontalDivider()
-                        ProfileInfoRow(label = "Member since", value = "January 2024")
+                        ProfileInfoRow(label = stringResource(R.string.member_since), value = "January 2024")
                     }
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                PreferenceSectionTitle(title = "Travel preferences")
+                PreferenceSectionTitle(title = stringResource(R.string.travel_preferences))
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -198,13 +198,13 @@ fun ProfileScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ProfileInfoRow(label = "Favourite destination", value = "Japan 🇯🇵")
+                        ProfileInfoRow(label = stringResource(R.string.favourite_destination), value = "Japan 🇯🇵")
                         HorizontalDivider()
-                        ProfileInfoRow(label = "Travel style", value = "Adventure")
+                        ProfileInfoRow(label = stringResource(R.string.travel_style), value = stringResource(R.string.adventure))
                         HorizontalDivider()
-                        ProfileInfoRow(label = "Preferred currency", value = "€ Euro")
+                        ProfileInfoRow(label = stringResource(R.string.preferred_currency), value = "€ Euro")
                         HorizontalDivider()
-                        ProfileInfoRow(label = "Language", value = "English")
+                        ProfileInfoRow(label = stringResource(R.string.language), value = stringResource(R.string.english))
                     }
                 }
 
@@ -218,7 +218,7 @@ fun ProfileScreen(
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Edit profile", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.edit_profile), fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

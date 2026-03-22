@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.R
 import com.example.ruler.domain.Trip
 import com.example.ruler.ui.viewmodels.TripListViewModel
 
@@ -40,7 +42,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Home",
+                        text = stringResource(R.string.home),
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -66,7 +68,7 @@ fun HomeScreen(
                         selected = true,
                         onClick = { },
                         icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
-                        label = { Text("Home", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -77,7 +79,7 @@ fun HomeScreen(
                             }
                         },
                         icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text("Trips", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
@@ -88,16 +90,15 @@ fun HomeScreen(
                         selected = false,
                         onClick = { onNavigateToGallery() },
                         icon = { Icon(Icons.Default.Face, contentDescription = "Gallery") },
-                        label = { Text("Gallery", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.gallery), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,
                         onClick = { onNavigateToProfile() },
                         icon = { Icon(Icons.Default.Person, contentDescription = "Profile") },
-                        label = { Text("Profile", fontSize = 13.sp) }
+                        label = { Text(stringResource(R.string.profile), fontSize = 13.sp) }
                     )
                 }
-
                 FloatingActionButton(
                     onClick = { onNavigateToNewTrip() },
                     modifier = Modifier
@@ -117,7 +118,6 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -128,7 +128,7 @@ fun HomeScreen(
         ) {
             item {
                 Text(
-                    text = "Next trip ✈️",
+                    text = stringResource(R.string.next_trip),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
@@ -146,7 +146,7 @@ fun HomeScreen(
                 }
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "All trips",
+                    text = stringResource(R.string.all_trips),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
@@ -176,9 +176,7 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
             .height(180.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Box(
@@ -189,25 +187,16 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
             Text(
                 text = trip.emoji,
                 fontSize = 90.sp,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .offset(x = 10.dp)
+                modifier = Modifier.align(Alignment.CenterEnd).offset(x = 10.dp)
             )
-
             IconButton(
                 onClick = onOptionsClick,
                 modifier = Modifier.align(Alignment.TopEnd)
             ) {
-                Icon(
-                    Icons.Default.MoreVert,
-                    contentDescription = "Options",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+                Icon(Icons.Default.MoreVert, contentDescription = "Options",
+                    tint = MaterialTheme.colorScheme.onPrimary)
             }
-
-            Column(
-                modifier = Modifier.align(Alignment.BottomStart)
-            ) {
+            Column(modifier = Modifier.align(Alignment.BottomStart)) {
                 Text(
                     text = trip.title,
                     style = MaterialTheme.typography.headlineLarge,
@@ -241,19 +230,13 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
 @Composable
 fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {}) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -265,45 +248,22 @@ fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = 
             ) {
                 Text(text = trip.emoji, fontSize = 24.sp)
             }
-
             Spacer(modifier = Modifier.width(14.dp))
-
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = trip.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = trip.startDate,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(text = trip.title, style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold)
+                Text(text = trip.startDate, style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = trip.endDate,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = trip.startDate,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                Text(text = trip.endDate, style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(text = trip.startDate, style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-
-            IconButton(
-                onClick = onOptionsClick,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    Icons.Default.MoreVert,
-                    contentDescription = "Options",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            IconButton(onClick = onOptionsClick, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.MoreVert, contentDescription = "Options",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
