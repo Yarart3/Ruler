@@ -1,38 +1,57 @@
 package com.example.ruler
 
-import com.example.ruler.data.fakeDB.FakeTripDataSource
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.example.ruler.data.local.RulerDatabase
 import com.example.ruler.data.repository.TripRepositoryImpl
 import com.example.ruler.domain.Trip
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class TripRepositoryTest {
 
+    private lateinit var database: RulerDatabase
     private lateinit var repository: TripRepositoryImpl
 
     @Before
     fun setUp() {
-        FakeTripDataSource.trips.clear()
-        FakeTripDataSource.activities.clear()
-        repository = TripRepositoryImpl()
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        database = Room.inMemoryDatabaseBuilder(context, RulerDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        repository = TripRepositoryImpl(database.tripDao(), database.itineraryItemDao())
+    }
+
+    @After
+    fun tearDown() {
+        database.close()
     }
 
     @Test
-    fun addTrip_addsTripToGetTrips() {
+    fun addTrip_addsTripToObservedTrips() = runBlocking {
         val trip = createTrip(id = "trip-1")
 
         repository.addTrip(trip)
 
-        val trips = repository.getTrips()
+        val trips = repository.observeTrips().first()
         assertTrue(trips.contains(trip))
     }
 
     @Test
-    fun editTrip_updatesTripData() {
+    fun editTrip_updatesTripData() = runBlocking {
         val originalTrip = createTrip(id = "trip-1", title = "Original")
         val editedTrip = originalTrip.copy(title = "Edited", destination = "Tokyo, Japan")
         repository.addTrip(originalTrip)
@@ -46,18 +65,18 @@ class TripRepositoryTest {
     }
 
     @Test
-    fun deleteTrip_removesTripFromGetTrips() {
+    fun deleteTrip_removesTripFromObservedTrips() = runBlocking {
         val trip = createTrip(id = "trip-1")
         repository.addTrip(trip)
 
         repository.deleteTrip(trip.id)
 
-        val trips = repository.getTrips()
+        val trips = repository.observeTrips().first()
         assertTrue(trips.none { it.id == trip.id })
     }
 
     @Test
-    fun getTripById_withValidId_returnsTrip() {
+    fun getTripById_withValidId_returnsTrip() = runBlocking {
         val trip = createTrip(id = "trip-1", title = "Barcelona")
         repository.addTrip(trip)
 
@@ -68,7 +87,7 @@ class TripRepositoryTest {
     }
 
     @Test
-    fun getTripById_withUnknownId_returnsNull() {
+    fun getTripById_withUnknownId_returnsNull() = runBlocking {
         val result = repository.getTripById("missing-id")
 
         assertNull(result)

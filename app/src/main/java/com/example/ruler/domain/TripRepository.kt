@@ -1,21 +1,27 @@
 package com.example.ruler.domain
 
+import kotlinx.coroutines.flow.Flow
+
 interface TripRepository {
-    fun getTrips(): List<Trip>
+    fun observeTrips(): Flow<List<Trip>>
 
-    fun getTripById(id: String): Trip?
+    suspend fun getTripById(id: String): Trip?
 
-    fun addTrip(trip: Trip)
+    suspend fun addTrip(trip: Trip)
 
-    fun editTrip(trip: Trip)
+    suspend fun editTrip(trip: Trip)
 
-    fun deleteTrip(id: String)
+    suspend fun deleteTrip(id: String)
 
-    fun getActivitiesByTrip(tripId: String): List<TripActivity>
+    fun observeActivitiesByTrip(tripId: String): Flow<List<TripActivity>>
 
-    fun addActivity(activity: TripActivity)
+    suspend fun getActivitiesByTrip(tripId: String): List<TripActivity>
 
-    fun updateActivity(activity: TripActivity)
+    suspend fun addActivity(activity: TripActivity)
 
-    fun deleteActivity(id: String)
+    suspend fun updateActivity(activity: TripActivity)
+
+    suspend fun deleteActivity(id: String)
+
+    suspend fun seedInitialDataIfNeeded()
 }

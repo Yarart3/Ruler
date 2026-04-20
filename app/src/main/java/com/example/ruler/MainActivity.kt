@@ -6,12 +6,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
+import dagger.hilt.android.AndroidEntryPoint
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.ui.screens.*
 import com.example.ruler.ui.theme.RulerTheme
 import com.example.ruler.ui.viewmodels.TripListViewModel
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: TripListViewModel by viewModels()
     override fun attachBaseContext(newBase: Context) {

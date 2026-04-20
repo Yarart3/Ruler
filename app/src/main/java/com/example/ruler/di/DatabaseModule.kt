@@ -1,0 +1,37 @@
+package com.example.ruler.di
+
+import android.content.Context
+import androidx.room.Room
+import com.example.ruler.data.local.RulerDatabase
+import com.example.ruler.data.local.dao.ItineraryItemDao
+import com.example.ruler.data.local.dao.TripDao
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideRulerDatabase(
+        @ApplicationContext context: Context
+    ): RulerDatabase {
+        return Room.databaseBuilder(
+            context,
+            RulerDatabase::class.java,
+            "ruler_database"
+        ).build()
+    }
+
+    @Provides
+    fun provideTripDao(database: RulerDatabase): TripDao = database.tripDao()
+
+    @Provides
+    fun provideItineraryItemDao(database: RulerDatabase): ItineraryItemDao =
+        database.itineraryItemDao()
+}
