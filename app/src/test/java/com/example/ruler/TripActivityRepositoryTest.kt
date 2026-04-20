@@ -1,23 +1,36 @@
 package com.example.ruler
 
-import com.example.ruler.data.fakeDB.FakeTripDataSource
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.example.ruler.data.local.RulerDatabase
 import com.example.ruler.data.repository.TripRepositoryImpl
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class TripActivityRepositoryTest {
 
+    private lateinit var database: RulerDatabase
     private lateinit var repository: TripRepositoryImpl
 
     @Before
-    fun setUp() {
-        FakeTripDataSource.trips.clear()
-        FakeTripDataSource.activities.clear()
-        repository = TripRepositoryImpl()
+    fun setUp() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        database = Room.inMemoryDatabaseBuilder(context, RulerDatabase::class.java)
+            .allowMainThreadQueries()
+            .build()
+        repository = TripRepositoryImpl(database.tripDao(), database.itineraryItemDao())
         repository.addTrip(
             Trip(
                 id = "trip-1",
@@ -32,18 +45,23 @@ class TripActivityRepositoryTest {
         )
     }
 
+    @After
+    fun tearDown() {
+        database.close()
+    }
+
     @Test
-    fun addActivity_addsActivityToTrip() {
+    fun addActivity_addsActivityToTrip() = runBlocking {
         val activity = createActivity(id = "activity-1")
 
         repository.addActivity(activity)
 
         val activities = repository.getActivitiesByTrip("trip-1")
-        assertTrue(activities.contains(activity))
+        assertTrue(activities.any { it.id == activity.id })
     }
 
     @Test
-    fun updateActivity_updatesActivityData() {
+    fun updateActivity_updatesActivityData() = runBlocking {
         val activity = createActivity(id = "activity-1", title = "Museum")
         repository.addActivity(activity)
 
@@ -58,7 +76,7 @@ class TripActivityRepositoryTest {
     }
 
     @Test
-    fun deleteActivity_removesActivity() {
+    fun deleteActivity_removesActivity() = runBlocking {
         val activity = createActivity(id = "activity-1")
         repository.addActivity(activity)
 
@@ -69,11 +87,11 @@ class TripActivityRepositoryTest {
     }
 
     @Test
-    fun getActivitiesByTrip_withValidTripId_returnsCorrectActivities() {
+    fun getActivitiesByTrip_withValidTripId_returnsCorrectActivities() = runBlocking {
         val first = createActivity(id = "activity-1", title = "Breakfast")
         val second = createActivity(id = "activity-2", title = "Walk")
         val otherTripActivity = createActivity(id = "activity-3", tripId = "trip-2", title = "Other")
-        FakeTripDataSource.trips.add(
+        repository.addTrip(
             Trip(
                 id = "trip-2",
                 title = "Other trip",
@@ -85,6 +103,7 @@ class TripActivityRepositoryTest {
                 emoji = "🗼"
             )
         )
+
         repository.addActivity(first)
         repository.addActivity(second)
         repository.addActivity(otherTripActivity)

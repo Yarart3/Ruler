@@ -2,33 +2,63 @@ package com.example.ruler.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.ruler.data.repository.TripRepositoryImpl
+import androidx.lifecycle.viewModelScope
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
+import com.example.ruler.domain.TripRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.UUID
+import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class TripListViewModel : ViewModel() {
+@HiltViewModel
+@OptIn(ExperimentalCoroutinesApi::class)
+class TripListViewModel @Inject constructor(
+    private val repository: TripRepository
+) : ViewModel() {
 
-    private val repository = TripRepositoryImpl()
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
         isLenient = false
     }
 
-    private val _trips = MutableStateFlow(repository.getTrips())
-    val trips: StateFlow<List<Trip>> = _trips.asStateFlow()
+    private val selectedTripId = MutableStateFlow<String?>(null)
 
-    private val _activities = MutableStateFlow<List<TripActivity>>(emptyList())
-    val activities: StateFlow<List<TripActivity>> = _activities.asStateFlow()
+    val trips: StateFlow<List<Trip>> = repository.observeTrips().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
+
+    val activities: StateFlow<List<TripActivity>> = selectedTripId.flatMapLatest { tripId ->
+        if (tripId == null) {
+            flowOf(emptyList())
+        } else {
+            repository.observeActivitiesByTrip(tripId)
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    private var selectedTripId: String? = null
+    init {
+        viewModelScope.launch {
+            repository.seedInitialDataIfNeeded()
+        }
+    }
 
     fun addTrip(
         title: String,
@@ -54,40 +84,51 @@ class TripListViewModel : ViewModel() {
             emoji = emoji
         )
 
-        try {
-            repository.addTrip(trip)
-            refreshTrips()
-            clearError()
-            Log.i(TAG, "Viaje creado correctamente: ${trip.id}")
-        } catch (e: Exception) {
-            _errorMessage.value = e.message ?: "Unexpected error"
-            Log.e(TAG, "Error al crear viaje", e)
+        viewModelScope.launch {
+            try {
+                repository.addTrip(trip)
+                clearError()
+                Log.i(TAG, "Viaje creado correctamente: ${trip.id}")
+            } catch (e: Exception) {
+                _errorMessage.value = e.message ?: "Unexpected error"
+                Log.e(TAG, "Error al crear viaje", e)
+            }
         }
     }
 
     fun deleteTrip(id: String) {
-        repository.deleteTrip(id)
-        refreshTrips()
-        if (selectedTripId == id) {
-            selectedTripId = null
-            _activities.value = emptyList()
+        viewModelScope.launch {
+            repository.deleteTrip(id)
+            if (selectedTripId.value == id) {
+                selectedTripId.value = null
+            }
+            Log.i(TAG, "Viaje eliminado: $id")
         }
-        Log.i(TAG, "Viaje eliminado: $id")
     }
 
     fun editTrip(trip: Trip) {
-        if (!validateTrip(trip.title, trip.destination, trip.startDate, trip.endDate, trip.description, trip.budget, trip.emoji)) {
+        if (!validateTrip(
+                trip.title,
+                trip.destination,
+                trip.startDate,
+                trip.endDate,
+                trip.description,
+                trip.budget,
+                trip.emoji
+            )
+        ) {
             return
         }
-        repository.editTrip(trip)
-        refreshTrips()
-        clearError()
-        Log.i(TAG, "Viaje editado: ${trip.id}")
+
+        viewModelScope.launch {
+            repository.editTrip(trip)
+            clearError()
+            Log.i(TAG, "Viaje editado: ${trip.id}")
+        }
     }
 
     fun selectTrip(id: String) {
-        selectedTripId = id
-        _activities.value = repository.getActivitiesByTrip(id)
+        selectedTripId.value = id
     }
 
     fun addActivity(
@@ -97,79 +138,80 @@ class TripListViewModel : ViewModel() {
         date: String,
         time: String
     ) {
-        val trip = repository.getTripById(tripId)
-        val activityDate = parseDate(date)
-        val tripStartDate = trip?.let { parseDate(it.startDate) }
-        val tripEndDate = trip?.let { parseDate(it.endDate) }
+        viewModelScope.launch {
+            val trip = repository.getTripById(tripId)
+            val activityDate = parseDate(date)
+            val tripStartDate = trip?.let { parseDate(it.startDate) }
+            val tripEndDate = trip?.let { parseDate(it.endDate) }
 
-        val isDateInRange = trip != null &&
-            activityDate != null &&
-            tripStartDate != null &&
-            tripEndDate != null &&
-            !activityDate.before(tripStartDate) &&
-            !activityDate.after(tripEndDate)
-
-        if (!isDateInRange) {
-            _errorMessage.value = "Activity date must be within trip date range"
-            Log.e(TAG, "Error al crear actividad: fecha fuera del rango del viaje")
-            return
-        }
-
-        val activity = TripActivity(
-            id = UUID.randomUUID().toString(),
-            tripId = tripId,
-            title = title,
-            description = description,
-            date = date,
-            time = time
-        )
-
-        repository.addActivity(activity)
-        if (selectedTripId == tripId) {
-            _activities.value = repository.getActivitiesByTrip(tripId)
-        }
-        clearError()
-        Log.i(TAG, "Actividad creada correctamente: ${activity.id}")
-    }
-
-
-    fun getTripById(id: String): Trip? = repository.getTripById(id)
-
-    fun updateActivity(activity: TripActivity) {
-        val trip = repository.getTripById(activity.tripId)
-        val activityDate = parseDate(activity.date)
-        val tripStartDate = trip?.let { parseDate(it.startDate) }
-        val tripEndDate = trip?.let { parseDate(it.endDate) }
-
-        val isDateInRange = trip != null &&
+            val isDateInRange = trip != null &&
                 activityDate != null &&
                 tripStartDate != null &&
                 tripEndDate != null &&
                 !activityDate.before(tripStartDate) &&
                 !activityDate.after(tripEndDate)
 
-        if (!isDateInRange) {
-            _errorMessage.value = "Activity date must be within trip date range"
-            Log.e(TAG, "Error al actualizar actividad: fecha fuera del rango del viaje")
-            return
-        }
+            if (!isDateInRange) {
+                _errorMessage.value = "Activity date must be within trip date range"
+                Log.e(TAG, "Error al crear actividad: fecha fuera del rango del viaje")
+                return@launch
+            }
 
-        repository.updateActivity(activity)
-        selectedTripId?.let { _activities.value = repository.getActivitiesByTrip(it) }
-        clearError()
-        Log.i(TAG, "Actividad actualizada: ${activity.id}")
+            val activity = TripActivity(
+                id = UUID.randomUUID().toString(),
+                tripId = tripId,
+                title = title,
+                description = description,
+                date = date,
+                time = time
+            )
+
+            repository.addActivity(activity)
+            clearError()
+            Log.i(TAG, "Actividad creada correctamente: ${activity.id}")
+        }
+    }
+
+    fun getTripById(id: String): Trip? = trips.value.find { it.id == id }
+
+    fun updateActivity(activity: TripActivity) {
+        viewModelScope.launch {
+            val trip = repository.getTripById(activity.tripId)
+            val activityDate = parseDate(activity.date)
+            val tripStartDate = trip?.let { parseDate(it.startDate) }
+            val tripEndDate = trip?.let { parseDate(it.endDate) }
+
+            val isDateInRange = trip != null &&
+                activityDate != null &&
+                tripStartDate != null &&
+                tripEndDate != null &&
+                !activityDate.before(tripStartDate) &&
+                !activityDate.after(tripEndDate)
+
+            if (!isDateInRange) {
+                _errorMessage.value = "Activity date must be within trip date range"
+                Log.e(TAG, "Error al actualizar actividad: fecha fuera del rango del viaje")
+                return@launch
+            }
+
+            repository.updateActivity(activity)
+            clearError()
+            Log.i(TAG, "Actividad actualizada: ${activity.id}")
+        }
     }
 
     fun toggleActivityDone(id: String) {
-        val activity = _activities.value.find { it.id == id } ?: return
-        repository.updateActivity(activity.copy(isDone = !activity.isDone))
-        selectedTripId?.let { _activities.value = repository.getActivitiesByTrip(it) }
-        Log.i(TAG, "Estado de actividad actualizado: $id")
+        val activity = activities.value.find { it.id == id } ?: return
+        viewModelScope.launch {
+            repository.updateActivity(activity.copy(isDone = !activity.isDone))
+            Log.i(TAG, "Estado de actividad actualizado: $id")
+        }
     }
 
     fun deleteActivity(id: String) {
-        repository.deleteActivity(id)
-        selectedTripId?.let { _activities.value = repository.getActivitiesByTrip(it) }
+        viewModelScope.launch {
+            repository.deleteActivity(id)
+        }
     }
 
     fun clearError() {
@@ -185,7 +227,15 @@ class TripListViewModel : ViewModel() {
         budget: String,
         emoji: String
     ): Boolean {
-        if (title.isBlank() || destination.isBlank() || startDate.isBlank() || endDate.isBlank() || description.isBlank() || budget.isBlank() || emoji.isBlank()) {
+        if (
+            title.isBlank() ||
+            destination.isBlank() ||
+            startDate.isBlank() ||
+            endDate.isBlank() ||
+            description.isBlank() ||
+            budget.isBlank() ||
+            emoji.isBlank()
+        ) {
             _errorMessage.value = "All fields are required"
             Log.e(TAG, "Error al guardar viaje: faltan campos obligatorios")
             return false
@@ -201,10 +251,6 @@ class TripListViewModel : ViewModel() {
         }
 
         return true
-    }
-
-    private fun refreshTrips() {
-        _trips.value = repository.getTrips()
     }
 
     private fun parseDate(value: String) = runCatching {

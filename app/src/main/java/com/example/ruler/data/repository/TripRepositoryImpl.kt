@@ -1,51 +1,80 @@
 package com.example.ruler.data.repository
 
 import com.example.ruler.data.fakeDB.FakeTripDataSource
+import com.example.ruler.data.local.dao.ItineraryItemDao
+import com.example.ruler.data.local.dao.TripDao
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.domain.TripRepository
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class TripRepositoryImpl : TripRepository {
-    override fun getTrips(): List<Trip> {
-        return FakeTripDataSource.trips.toList()
-    }
-
-    override fun getTripById(id: String): Trip? {
-        return FakeTripDataSource.trips.find { it.id == id }
-    }
-
-    override fun addTrip(trip: Trip) {
-        FakeTripDataSource.trips.add(trip)
-    }
-
-    override fun editTrip(trip: Trip) {
-        val index = FakeTripDataSource.trips.indexOfFirst { it.id == trip.id }
-        if (index != -1) {
-            FakeTripDataSource.trips[index] = trip
+@Singleton
+class TripRepositoryImpl @Inject constructor(
+    private val tripDao: TripDao,
+    private val itineraryItemDao: ItineraryItemDao
+) : TripRepository {
+    override fun observeTrips(): Flow<List<Trip>> {
+        return tripDao.observeAllTrips().map { trips ->
+            trips.map { it.toDomain() }
         }
     }
 
-    override fun deleteTrip(id: String) {
-        FakeTripDataSource.trips.removeAll { it.id == id }
-        FakeTripDataSource.activities.removeAll { it.tripId == id }
+    override suspend fun getTripById(id: String): Trip? {
+        return tripDao.getTripById(id)?.toDomain()
     }
 
-    override fun getActivitiesByTrip(tripId: String): List<TripActivity> {
-        return FakeTripDataSource.activities.filter { it.tripId == tripId }
+    override suspend fun addTrip(trip: Trip) {
+        tripDao.insertTrip(trip.toEntity())
     }
 
-    override fun addActivity(activity: TripActivity) {
-        FakeTripDataSource.activities.add(activity)
+    override suspend fun editTrip(trip: Trip) {
+        tripDao.updateTrip(trip.toEntity())
     }
 
-    override fun updateActivity(activity: TripActivity) {
-        val index = FakeTripDataSource.activities.indexOfFirst { it.id == activity.id }
-        if (index != -1) {
-            FakeTripDataSource.activities[index] = activity
+    override suspend fun deleteTrip(id: String) {
+        tripDao.deleteTripById(id)
+    }
+
+    override fun observeActivitiesByTrip(tripId: String): Flow<List<TripActivity>> {
+        return itineraryItemDao.observeItemsByTrip(tripId).map { items ->
+            items.map { it.toDomain() }
         }
     }
 
-    override fun deleteActivity(id: String) {
-        FakeTripDataSource.activities.removeAll { it.id == id }
+    override suspend fun getActivitiesByTrip(tripId: String): List<TripActivity> {
+        return itineraryItemDao.getItemsByTrip(tripId).map { it.toDomain() }
+    }
+
+    override suspend fun addActivity(activity: TripActivity) {
+        val nextDisplayOrder = itineraryItemDao.countItemsByTrip(activity.tripId) + 1
+        itineraryItemDao.insertItem(activity.toEntity(displayOrder = nextDisplayOrder))
+    }
+
+    override suspend fun updateActivity(activity: TripActivity) {
+        val existingItem = itineraryItemDao.getItemById(activity.id)
+        itineraryItemDao.updateItem(activity.toEntity(existingItem))
+    }
+
+    override suspend fun deleteActivity(id: String) {
+        itineraryItemDao.deleteItemById(id)
+    }
+
+    override suspend fun seedInitialDataIfNeeded() {
+        if (tripDao.getAllTrips().isNotEmpty()) {
+            return
+        }
+
+        tripDao.insertTrips(FakeTripDataSource.trips.map { it.toEntity() })
+
+        if (FakeTripDataSource.activities.isNotEmpty()) {
+            itineraryItemDao.insertItems(
+                FakeTripDataSource.activities.mapIndexed { index, activity ->
+                    activity.toEntity(displayOrder = index + 1)
+                }
+            )
+        }
     }
 }
