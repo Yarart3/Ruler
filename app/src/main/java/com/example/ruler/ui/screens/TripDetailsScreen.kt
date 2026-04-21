@@ -49,6 +49,12 @@ fun TripDetailScreen(
         viewModel.selectTrip(tripId)
     }
 
+    LaunchedEffect(trips) {
+        if (trips.isNotEmpty() && trips.none { it.id == tripId }) {
+            onNavigateBack()
+        }
+    }
+
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf(
         stringResource(R.string.itinerary),
