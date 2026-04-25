@@ -75,6 +75,14 @@
     <string name="personal_info">Personal info</string>
     <string name="full_name">Full name</string>
     <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Log in</string>
+    <string name="create_account">Create account</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="login_welcome">Welcome back</string>
+    <string name="login_subtitle">Sign in to continue planning your trips.</string>
+    <string name="firebase_setup_required">Firebase is not configured yet. Add the project configuration file to enable login.</string>
+    <string name="login_failed">Login failed. Check your credentials and try again.</string>
     <string name="location">Location</string>
     <string name="member_since">Member since</string>
     <string name="travel_preferences">Travel preferences</string>

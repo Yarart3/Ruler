@@ -76,6 +76,14 @@
     <string name="personal_info">Informació personal</string>
     <string name="full_name">Nom complet</string>
     <string name="email">Correu electrònic</string>
+    <string name="password">Contrasenya</string>
+    <string name="login">Iniciar sessió</string>
+    <string name="create_account">Crear compte</string>
+    <string name="forgot_password">Has oblidat la contrasenya?</string>
+    <string name="login_welcome">Benvingut de nou</string>
+    <string name="login_subtitle">Inicia sessió per continuar planificant els teus viatges.</string>
+    <string name="firebase_setup_required">Firebase encara no està configurat. Afegeix el fitxer de configuració del projecte per activar el login.</string>
+    <string name="login_failed">No ha estat possible iniciar sessió. Revisa les credencials i torna-ho a provar.</string>
     <string name="location">Ubicació</string>
     <string name="member_since">Membre des de</string>
     <string name="travel_preferences">Preferències de viatge</string>

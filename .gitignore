@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+/.kotlin
+/local-maven
+/app/.idea
+/app/google-services.json

@@ -76,6 +76,14 @@
     <string name="personal_info">Información personal</string>
     <string name="full_name">Nombre completo</string>
     <string name="email">Correo electrónico</string>
+    <string name="password">Contraseña</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="create_account">Crear cuenta</string>
+    <string name="forgot_password">¿Has olvidado tu contraseña?</string>
+    <string name="login_welcome">Bienvenido de nuevo</string>
+    <string name="login_subtitle">Inicia sesión para seguir planificando tus viajes.</string>
+    <string name="firebase_setup_required">Firebase aún no está configurado. Añade el archivo de configuración del proyecto para activar el login.</string>
+    <string name="login_failed">No se ha podido iniciar sesión. Revisa tus credenciales e inténtalo otra vez.</string>
     <string name="location">Ubicación</string>
     <string name="member_since">Miembro desde</string>
     <string name="travel_preferences">Preferencias de viaje</string>

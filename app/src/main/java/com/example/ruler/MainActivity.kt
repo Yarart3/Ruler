@@ -6,15 +6,19 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.runtime.*
+import androidx.compose.ui.res.stringResource
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.ui.screens.*
 import com.example.ruler.ui.theme.RulerTheme
+import com.example.ruler.ui.viewmodels.AuthSessionState
+import com.example.ruler.ui.viewmodels.AuthViewModel
 import com.example.ruler.ui.viewmodels.TripListViewModel
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val authViewModel: AuthViewModel by viewModels()
     private val viewModel: TripListViewModel by viewModels()
     override fun attachBaseContext(newBase: Context) {
         val lang = LocaleHelper.getSavedLanguage(newBase)
@@ -27,6 +31,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var darkMode by remember { mutableStateOf(prefs.getBoolean("dark_mode", false)) }
+            val authState by authViewModel.uiState.collectAsState()
 
             RulerTheme(darkTheme = darkMode) {
                 var currentScreen by remember { mutableStateOf("splash") }
@@ -36,10 +41,40 @@ class MainActivity : ComponentActivity() {
                 var selectedTrip by remember { mutableStateOf<Trip?>(null) }
                 var activityToEdit by remember { mutableStateOf<TripActivity?>(null) }
 
-                when (currentScreen) {
-                    "splash" -> SplashScreen(
-                        onSplashFinished = { currentScreen = "home" }
+                LaunchedEffect(authState.sessionState) {
+                    if (authState.sessionState == AuthSessionState.Authenticated && currentScreen == "login") {
+                        currentScreen = "home"
+                    }
+                }
+
+                if (currentScreen == "splash") {
+                    SplashScreen(
+                        onSplashFinished = {
+                            currentScreen = when (authState.sessionState) {
+                                AuthSessionState.Authenticated -> "home"
+                                AuthSessionState.RequiresLogin,
+                                AuthSessionState.FirebaseNotConfigured,
+                                AuthSessionState.Checking -> "login"
+                            }
+                        }
                     )
+                } else if (
+                    authState.sessionState == AuthSessionState.RequiresLogin ||
+                    authState.sessionState == AuthSessionState.FirebaseNotConfigured
+                ) {
+                    LoginScreen(
+                        onLoginClick = authViewModel::signIn,
+                        isLoading = authState.isLoading,
+                        errorMessage = authState.errorMessage ?: if (
+                            authState.sessionState == AuthSessionState.FirebaseNotConfigured
+                        ) {
+                            stringResource(R.string.firebase_setup_required)
+                        } else {
+                            null
+                        }
+                    )
+                } else {
+                    when (currentScreen) {
                     "home" -> HomeScreen(
                         viewModel = viewModel,
                         onTripClick = { tripId ->
@@ -193,6 +228,12 @@ class MainActivity : ComponentActivity() {
                         onNavigateToGallery = { currentScreen = "gallery" },
                         onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
+                    else -> LoginScreen(
+                        onLoginClick = authViewModel::signIn,
+                        isLoading = authState.isLoading,
+                        errorMessage = authState.errorMessage
+                    )
+                }
                 }
             }
         }
