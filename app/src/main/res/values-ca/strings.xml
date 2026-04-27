@@ -129,4 +129,6 @@
     <string name="terms_6_content">Ens reservem el dret de modificar aquests termes en qualsevol moment. L\'ús continuat de l\'app implica l\'acceptació dels nous termes.</string>
     <string name="terms_7_title">7. Contacte</string>
     <string name="terms_7_content">Si tens preguntes sobre aquests termes, contacta\'ns a: ruler.app@udl.cat</string>
+    <string name="logout">Tancar sessió</string>
+
 </resources>

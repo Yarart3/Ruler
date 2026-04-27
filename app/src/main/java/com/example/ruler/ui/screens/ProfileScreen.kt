@@ -29,7 +29,8 @@ fun ProfileScreen(
     onNavigateToAbout: () -> Unit = {},
     onNavigateToTrips: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
-    onNavigateToNewTrip: () -> Unit = {}
+    onNavigateToNewTrip: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -219,6 +220,19 @@ fun ProfileScreen(
                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(stringResource(R.string.edit_profile), fontWeight = FontWeight.SemiBold)
+                }
+
+                Button(
+                    onClick = { onLogout() },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Icon(Icons.Default.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.logout), fontWeight = FontWeight.SemiBold)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))

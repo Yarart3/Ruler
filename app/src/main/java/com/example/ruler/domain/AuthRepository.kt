@@ -5,5 +5,7 @@ interface AuthRepository {
 
     fun isFirebaseConfigured(): Boolean
 
+    fun signOut()
+
     suspend fun signIn(email: String, password: String): Result<Unit>
 }

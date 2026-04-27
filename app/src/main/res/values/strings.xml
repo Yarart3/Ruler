@@ -128,4 +128,5 @@
     <string name="terms_6_content">We reserve the right to modify these terms at any time. Continued use of the app after changes constitutes acceptance of the new terms.</string>
     <string name="terms_7_title">7. Contact</string>
     <string name="terms_7_content">If you have any questions about these Terms, please contact us at: ruler.app@udl.cat</string>
+    <string name="logout">Log out</string>
 </resources>

@@ -195,7 +195,7 @@ class MainActivity : ComponentActivity() {
                         onNavigateToNewTrip = { currentScreen = "newTrip" }
                     )
                     "preferences" -> PreferencesScreen(
-                        onNavigateBack = { currentScreen = "home" },
+                        onNavigateBack = { currentScreen = "profile" },
                         onNavigateToHome = { currentScreen = "home" },
                         onNavigateToAbout = { currentScreen = "about" },
                         onNavigateToTrips = { currentScreen = "tripDetail" },
@@ -226,7 +226,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateToAbout = { currentScreen = "about" },
                         onNavigateToTrips = { currentScreen = "tripDetail" },
                         onNavigateToGallery = { currentScreen = "gallery" },
-                        onNavigateToNewTrip = { currentScreen = "newTrip" }
+                        onNavigateToNewTrip = { currentScreen = "newTrip" },
+                        onLogout = { authViewModel.signOut() }
                     )
                     else -> LoginScreen(
                         onLoginClick = authViewModel::signIn,
