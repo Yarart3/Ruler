@@ -229,8 +229,13 @@ class MainActivity : ComponentActivity() {
                         onNavigateToNewTrip = { currentScreen = "newTrip" },
                         onLogout = { authViewModel.signOut() }
                     )
+                    "register" -> RegisterScreen(
+                        onNavigateToLogin = { currentScreen = "login" },
+                        // onRegisterClick = {username, email, password -> }
+                    )
                     else -> LoginScreen(
                         onLoginClick = authViewModel::signIn,
+                        onNavigateToRegister = { currentScreen = "register" },
                         isLoading = authState.isLoading,
                         errorMessage = authState.errorMessage
                     )

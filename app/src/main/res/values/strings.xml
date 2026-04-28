@@ -129,4 +129,10 @@
     <string name="terms_7_title">7. Contact</string>
     <string name="terms_7_content">If you have any questions about these Terms, please contact us at: ruler.app@udl.cat</string>
     <string name="logout">Log out</string>
+    <string name="register_title">Create account</string>
+    <string name="register_subtitle">Sign up to start planning your trips</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="passwords_do_not_match">Passwords do not match</string>
+    <string name="register">Sign up</string>
+    <string name="already_have_account">Already have an account? Sign in</string>
 </resources>
