@@ -41,9 +41,11 @@ class MainActivity : ComponentActivity() {
                 var selectedTrip by remember { mutableStateOf<Trip?>(null) }
                 var activityToEdit by remember { mutableStateOf<TripActivity?>(null) }
 
-                LaunchedEffect(authState.sessionState) {
-                    if (authState.sessionState == AuthSessionState.Authenticated && currentScreen == "login") {
+                LaunchedEffect(authState.sessionState, authState.successMessage) {
+                    if (authState.sessionState == AuthSessionState.Authenticated) {
                         currentScreen = "home"
+                    } else if (authState.successMessage != null && currentScreen == "register") {
+                        currentScreen = "login"
                     }
                 }
 
@@ -58,12 +60,15 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     )
-                } else if (
-                    authState.sessionState == AuthSessionState.RequiresLogin ||
-                    authState.sessionState == AuthSessionState.FirebaseNotConfigured
-                ) {
-                    LoginScreen(
-                        onLoginClick = authViewModel::signIn,
+                } else if (currentScreen == "register") {
+                    RegisterScreen(
+                        onRegisterClick = { _, email, password ->
+                            authViewModel.register(email, password)
+                        },
+                        onNavigateToLogin = {
+                            authViewModel.clearMessages()
+                            currentScreen = "login"
+                        },
                         isLoading = authState.isLoading,
                         errorMessage = authState.errorMessage ?: if (
                             authState.sessionState == AuthSessionState.FirebaseNotConfigured
@@ -71,7 +76,29 @@ class MainActivity : ComponentActivity() {
                             stringResource(R.string.firebase_setup_required)
                         } else {
                             null
-                        }
+                        },
+                        successMessage = authState.successMessage
+                    )
+                } else if (
+                    currentScreen == "login" ||
+                    authState.sessionState == AuthSessionState.RequiresLogin ||
+                    authState.sessionState == AuthSessionState.FirebaseNotConfigured
+                ) {
+                    LoginScreen(
+                        onLoginClick = authViewModel::signIn,
+                        onNavigateToRegister = {
+                            authViewModel.clearMessages()
+                            currentScreen = "register"
+                        },
+                        isLoading = authState.isLoading,
+                        errorMessage = authState.errorMessage ?: if (
+                            authState.sessionState == AuthSessionState.FirebaseNotConfigured
+                        ) {
+                            stringResource(R.string.firebase_setup_required)
+                        } else {
+                            null
+                        },
+                        successMessage = authState.successMessage
                     )
                 } else {
                     when (currentScreen) {
@@ -229,15 +256,15 @@ class MainActivity : ComponentActivity() {
                         onNavigateToNewTrip = { currentScreen = "newTrip" },
                         onLogout = { authViewModel.signOut() }
                     )
-                    "register" -> RegisterScreen(
-                        onNavigateToLogin = { currentScreen = "login" },
-                        // onRegisterClick = {username, email, password -> }
-                    )
                     else -> LoginScreen(
                         onLoginClick = authViewModel::signIn,
-                        onNavigateToRegister = { currentScreen = "register" },
+                        onNavigateToRegister = {
+                            authViewModel.clearMessages()
+                            currentScreen = "register"
+                        },
                         isLoading = authState.isLoading,
-                        errorMessage = authState.errorMessage
+                        errorMessage = authState.errorMessage,
+                        successMessage = authState.successMessage
                     )
                 }
                 }

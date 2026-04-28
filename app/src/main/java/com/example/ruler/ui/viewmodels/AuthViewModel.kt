@@ -21,7 +21,8 @@ enum class AuthSessionState {
 data class AuthUiState(
     val sessionState: AuthSessionState = AuthSessionState.Checking,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val successMessage: String? = null
 )
 
 @HiltViewModel
@@ -60,7 +61,11 @@ class AuthViewModel @Inject constructor(
 
     fun signIn(email: String, password: String) {
         Log.i(tag, "signIn: iniciant login per email=$email")
-        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            errorMessage = null,
+            successMessage = null
+        )
 
         viewModelScope.launch {
             val result = authRepository.signIn(email.trim(), password)
@@ -81,6 +86,46 @@ class AuthViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun register(email: String, password: String) {
+        Log.i(tag, "register: iniciant registre per email=$email")
+        val sessionState = if (authRepository.isFirebaseConfigured()) {
+            AuthSessionState.RequiresLogin
+        } else {
+            AuthSessionState.FirebaseNotConfigured
+        }
+        _uiState.value = _uiState.value.copy(
+            sessionState = sessionState,
+            isLoading = true,
+            errorMessage = null,
+            successMessage = null
+        )
+
+        viewModelScope.launch {
+            val result = authRepository.register(email.trim(), password)
+            _uiState.value = if (result.isSuccess) {
+                Log.i(tag, "register: registre completat per email=$email")
+                AuthUiState(
+                    sessionState = AuthSessionState.RequiresLogin,
+                    successMessage = "Account created. Check your email to verify the account before signing in."
+                )
+            } else {
+                val error = result.exceptionOrNull()?.localizedMessage
+                Log.e(tag, "register: error → $error")
+                AuthUiState(
+                    sessionState = sessionState,
+                    errorMessage = error
+                )
+            }
+        }
+    }
+
+    fun clearMessages() {
+        _uiState.value = _uiState.value.copy(
+            errorMessage = null,
+            successMessage = null
+        )
     }
 
     fun signOut() {

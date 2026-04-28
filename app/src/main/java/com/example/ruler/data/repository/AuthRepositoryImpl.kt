@@ -18,7 +18,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
 
     override fun hasAuthenticatedUser(): Boolean {
-        return isFirebaseConfigured() && auth.currentUser != null
+        return isFirebaseConfigured() && auth.currentUser?.isEmailVerified == true
     }
 
     override fun isFirebaseConfigured(): Boolean {
@@ -38,11 +38,39 @@ class AuthRepositoryImpl @Inject constructor(
         return runCatching {
             Log.i(tag, "signIn: intent de login amb email=$email")
             auth.signInWithEmailAndPassword(email, password).await()
+            val user = auth.currentUser ?: error("Authenticated user is missing")
+            user.reload().await()
+            if (!user.isEmailVerified) {
+                Log.w(tag, "signIn: email no verificat per email=$email")
+                auth.signOut()
+                error("Verify your email before signing in")
+            }
             Log.i(tag, "signIn: login correcte per email=$email")
             Unit
         }.also { result ->
             if (result.isFailure) {
                 Log.e(tag, "signIn: error → ${result.exceptionOrNull()?.localizedMessage}")
+            }
+        }
+    }
+
+    override suspend fun register(email: String, password: String): Result<Unit> {
+        if (!isFirebaseConfigured()) {
+            Log.e(tag, "register: Firebase no configurat")
+            return Result.failure(IllegalStateException("Firebase configuration is missing"))
+        }
+
+        return runCatching {
+            Log.i(tag, "register: creant usuari amb email=$email")
+            auth.createUserWithEmailAndPassword(email, password).await()
+            val user = auth.currentUser ?: error("Registered user is missing")
+            user.sendEmailVerification().await()
+            Log.i(tag, "register: email de verificació enviat a $email")
+            auth.signOut()
+            Unit
+        }.also { result ->
+            if (result.isFailure) {
+                Log.e(tag, "register: error → ${result.exceptionOrNull()?.localizedMessage}")
             }
         }
     }
