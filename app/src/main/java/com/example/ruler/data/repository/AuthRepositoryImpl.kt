@@ -81,4 +81,14 @@ class AuthRepositoryImpl @Inject constructor(
         auth.signOut()
         Log.i(tag, "signOut: sessió tancada correctament")
     }
+
+    override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        if (!isFirebaseConfigured()) {
+            return Result.failure(IllegalStateException("Firebase configuration is missing"))
+        }
+        return runCatching {
+            auth.sendPasswordResetEmail(email).await()
+            Unit
+        }
+    }
 }

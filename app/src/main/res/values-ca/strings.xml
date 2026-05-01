@@ -136,5 +136,11 @@
     <string name="passwords_do_not_match">Les contrasenyes no coincideixen</string>
     <string name="register">Registrar-se</string>
     <string name="already_have_account">Ja tens compte? Inicia sessió</string>
+    <string name="forgot_password_title">Recuperar contrasenya</string>
+    <string name="forgot_password_subtitle">Introdueix el teu email i t\'enviarem un enllaç per restablir la contrasenya</string>
+    <string name="send_reset_email">Enviar enllaç</string>
+    <string name="reset_email_sent_title">Email enviat!</string>
+    <string name="reset_email_sent_subtitle">Comprova la teva safata d\'entrada i segueix les instruccions</string>
+    <string name="back_to_login">Tornar a iniciar sessió</string>
 
 </resources>

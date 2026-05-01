@@ -22,7 +22,9 @@ data class AuthUiState(
     val sessionState: AuthSessionState = AuthSessionState.Checking,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val successMessage: String? = null
+    val successMessage: String? = null,
+    val resetEmailSent: Boolean = false,
+    val resetErrorMessage: String? = null
 )
 
 @HiltViewModel
@@ -88,6 +90,25 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun sendPasswordResetEmail(email: String) {
+        _uiState.value = _uiState.value.copy(isLoading = true, resetErrorMessage = null, resetEmailSent = false)
+
+        viewModelScope.launch {
+            val result = authRepository.sendPasswordResetEmail(email.trim())
+            _uiState.value = if (result.isSuccess) {
+                _uiState.value.copy(isLoading = false, resetEmailSent = true)
+            } else {
+                _uiState.value.copy(
+                    isLoading = false,
+                    resetErrorMessage = result.exceptionOrNull()?.localizedMessage
+                )
+            }
+        }
+    }
+
+    fun clearResetState() {
+        _uiState.value = _uiState.value.copy(resetEmailSent = false, resetErrorMessage = null)
+    }
     fun register(email: String, password: String) {
         Log.i(tag, "register: iniciant registre per email=$email")
         val sessionState = if (authRepository.isFirebaseConfigured()) {

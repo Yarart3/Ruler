@@ -3,10 +3,8 @@ package com.example.ruler.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,38 +15,30 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ruler.R
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(
-    onLoginClick: (String, String) -> Unit = { _, _ -> },
-    onNavigateToRegister: () -> Unit = {},
-    onNavigateToForgotPassword: () -> Unit = {},
+fun ForgotPasswordScreen(
+    onSendClick: (String) -> Unit = {},
+    onNavigateToLogin: () -> Unit = {},
     isLoading: Boolean = false,
     errorMessage: String? = null,
-    successMessage: String? = null
+    emailSent: Boolean = false
 ) {
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-
     var emailError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header
+        // Header igual que LoginScreen
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -91,27 +81,62 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(24.dp),
-
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = stringResource(R.string.login_welcome),
+                text = stringResource(R.string.forgot_password_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
-                text = stringResource(R.string.login_subtitle),
+                text = stringResource(R.string.forgot_password_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(4.dp))
+
+            // Mostrar missatge d'èxit si l'email s'ha enviat
+            if (emailSent) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.MarkEmailRead,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(28.dp)
+                        )
+                        Column {
+                            Text(
+                                text = stringResource(R.string.reset_email_sent_title),
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = stringResource(R.string.reset_email_sent_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            )
+                        }
+                    }
+                }
+            }
 
             // Camp email
             OutlinedTextField(
@@ -123,60 +148,15 @@ fun LoginScreen(
                 supportingText = { if (emailError) Text(stringResource(R.string.required_field)) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = androidx.compose.ui.text.input.KeyboardType.Email,
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Done
                 ),
                 singleLine = true,
-                enabled = !isLoading
+                enabled = !isLoading && !emailSent
             )
 
-            // Camp password
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it; passwordError = false },
-                label = { Text(stringResource(R.string.password)) },
-                leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            imageVector = if (passwordVisible) Icons.Default.VisibilityOff
-                            else Icons.Default.Visibility,
-                            contentDescription = null
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible) VisualTransformation.None
-                else PasswordVisualTransformation(),
-                isError = passwordError,
-                supportingText = { if (passwordError) Text(stringResource(R.string.required_field)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                singleLine = true,
-                enabled = !isLoading
-            )
-
-            successMessage?.let {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            }
-
+            // Error de Firebase
             errorMessage?.let {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -196,18 +176,17 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Botó Login — el company ha de connectar onLoginClick al ViewModel
+            // Botó enviar
             Button(
                 onClick = {
                     emailError = email.isBlank()
-                    passwordError = password.isBlank()
-                    if (!emailError && !passwordError) {
-                        onLoginClick(email, password)
+                    if (!emailError) {
+                        onSendClick(email)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                enabled = !isLoading,
+                enabled = !isLoading && !emailSent,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 )
@@ -219,39 +198,25 @@ fun LoginScreen(
                         strokeWidth = 2.dp
                     )
                 } else {
-                    Icon(Icons.Default.Login, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Send, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = stringResource(R.string.login),
+                        text = stringResource(R.string.send_reset_email),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 16.sp
                     )
                 }
             }
 
-            // Botó Registre — navega a RegisterScreen
-            OutlinedButton(
-                onClick = onNavigateToRegister,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                enabled = !isLoading
-            ) {
-                Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.create_account),
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-
-            // Link recuperació de contrasenya — navega a ForgotPasswordScreen
+            // Tornar al login
             TextButton(
-                onClick = onNavigateToForgotPassword,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
+                onClick = onNavigateToLogin,
+                modifier = Modifier.fillMaxWidth()
             ) {
+                Icon(Icons.Default.ArrowBack, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = stringResource(R.string.forgot_password),
+                    text = stringResource(R.string.back_to_login),
                     color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
@@ -259,3 +224,4 @@ fun LoginScreen(
         }
     }
 }
+
