@@ -25,6 +25,11 @@ class TripRepositoryTest {
 
     private lateinit var database: RulerDatabase
     private lateinit var repository: TripRepositoryImpl
+    private val authRepository = FakeAuthRepository(
+        userId = "user-1",
+        email = "user1@example.com",
+        username = "user1"
+    )
 
     @Before
     fun setUp() {
@@ -32,7 +37,7 @@ class TripRepositoryTest {
         database = Room.inMemoryDatabaseBuilder(context, RulerDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        repository = TripRepositoryImpl(database.tripDao(), database.itineraryItemDao())
+        repository = TripRepositoryImpl(database.tripDao(), database.itineraryItemDao(), authRepository)
     }
 
     @After
@@ -91,6 +96,23 @@ class TripRepositoryTest {
         val result = repository.getTripById("missing-id")
 
         assertNull(result)
+    }
+
+    @Test
+    fun observeTrips_filtersTripsByAuthenticatedUser() = runBlocking {
+        val otherUserRepository = TripRepositoryImpl(
+            database.tripDao(),
+            database.itineraryItemDao(),
+            FakeAuthRepository(userId = "user-2", email = "user2@example.com", username = "user2")
+        )
+
+        repository.addTrip(createTrip(id = "trip-1", title = "Mine"))
+        otherUserRepository.addTrip(createTrip(id = "trip-2", title = "Other"))
+
+        val trips = repository.observeTrips().first()
+
+        assertEquals(1, trips.size)
+        assertEquals("Mine", trips.single().title)
     }
 
     private fun createTrip(

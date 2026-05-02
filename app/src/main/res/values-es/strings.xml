@@ -136,4 +136,14 @@
     <string name="passwords_do_not_match">Las contraseñas no coinciden</string>
     <string name="register">Registrarse</string>
     <string name="already_have_account">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="address">Dirección</string>
+    <string name="country">País</string>
+    <string name="phone">Teléfono</string>
+    <string name="receive_emails">Recibir correos</string>
+    <string name="receive_emails_hint">Permite actualizaciones de viajes y avisos ocasionales</string>
+    <string name="save_profile">Guardar perfil</string>
+    <string name="contact_details">Datos de contacto</string>
+    <string name="not_provided">No indicado</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
 </resources>

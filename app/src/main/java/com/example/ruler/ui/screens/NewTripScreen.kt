@@ -47,6 +47,7 @@ fun NewTripScreen(
     var budget by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     val error by viewModel.errorMessage.collectAsState()
+    val tripCreatedCounter by viewModel.tripCreatedCounter.collectAsState()
 
     val emojiFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -59,6 +60,23 @@ fun NewTripScreen(
 
     val context = LocalContext.current
     val cal = Calendar.getInstance()
+    var pendingTripCreationTarget by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(tripCreatedCounter, pendingTripCreationTarget) {
+        if (
+            pendingTripCreationTarget != null &&
+            tripCreatedCounter >= pendingTripCreationTarget!!
+        ) {
+            pendingTripCreationTarget = null
+            onNavigateBack()
+        }
+    }
+
+    LaunchedEffect(error) {
+        if (error != null) {
+            pendingTripCreationTarget = null
+        }
+    }
 
     val startDatePickerDialog = DatePickerDialog(
         context,
@@ -334,6 +352,7 @@ fun NewTripScreen(
                     endDateError = endDate.isBlank()
 
                     if (!titleError && !destinationError && !emojiError && !startDateError && !endDateError) {
+                        pendingTripCreationTarget = tripCreatedCounter + 1
                         viewModel.addTrip(
                             title = title,
                             destination = destination,
@@ -343,7 +362,6 @@ fun NewTripScreen(
                             budget = budget,
                             emoji = emoji
                         )
-                        if (viewModel.errorMessage.value == null) onNavigateBack()
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

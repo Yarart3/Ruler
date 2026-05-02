@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
@@ -32,14 +33,20 @@ class TripListViewModel @Inject constructor(
     }
 
     private val selectedTripId = MutableStateFlow<String?>(null)
+    private val sessionRefreshTrigger = MutableStateFlow(0)
 
-    val trips: StateFlow<List<Trip>> = repository.observeTrips().stateIn(
+    val trips: StateFlow<List<Trip>> = sessionRefreshTrigger.flatMapLatest {
+        repository.observeTrips()
+    }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = emptyList()
     )
 
-    val activities: StateFlow<List<TripActivity>> = selectedTripId.flatMapLatest { tripId ->
+    val activities: StateFlow<List<TripActivity>> = combine(
+        sessionRefreshTrigger,
+        selectedTripId
+    ) { _, tripId -> tripId }.flatMapLatest { tripId ->
         if (tripId == null) {
             flowOf(emptyList())
         } else {
@@ -54,10 +61,11 @@ class TripListViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    private val _tripCreatedCounter = MutableStateFlow(0)
+    val tripCreatedCounter: StateFlow<Int> = _tripCreatedCounter.asStateFlow()
+
     init {
-        viewModelScope.launch {
-            repository.seedInitialDataIfNeeded()
-        }
+        refreshSessionData()
     }
 
     fun addTrip(
@@ -88,6 +96,7 @@ class TripListViewModel @Inject constructor(
             try {
                 repository.addTrip(trip)
                 clearError()
+                _tripCreatedCounter.value += 1
                 Log.i(TAG, "Viaje creado correctamente: ${trip.id}")
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Unexpected error"
@@ -216,6 +225,19 @@ class TripListViewModel @Inject constructor(
 
     fun clearError() {
         _errorMessage.value = null
+    }
+
+    fun refreshSessionData() {
+        sessionRefreshTrigger.value += 1
+        viewModelScope.launch {
+            repository.seedInitialDataIfNeeded()
+        }
+    }
+
+    fun clearSessionData() {
+        selectedTripId.value = null
+        clearError()
+        sessionRefreshTrigger.value += 1
     }
 
     private fun validateTrip(

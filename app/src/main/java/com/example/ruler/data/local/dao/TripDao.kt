@@ -18,17 +18,35 @@ interface TripDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTrips(trips: List<TripEntity>)
 
-    @Query("SELECT * FROM trips ORDER BY start_date_epoch_millis ASC, title ASC")
-    fun observeAllTrips(): Flow<List<TripEntity>>
+    @Query(
+        """
+        SELECT * FROM trips
+        WHERE owner_user_id = :ownerUserId
+        ORDER BY start_date_epoch_millis ASC, title ASC
+        """
+    )
+    fun observeTripsByOwner(ownerUserId: String): Flow<List<TripEntity>>
 
-    @Query("SELECT * FROM trips ORDER BY start_date_epoch_millis ASC, title ASC")
-    suspend fun getAllTrips(): List<TripEntity>
+    @Query(
+        """
+        SELECT * FROM trips
+        WHERE owner_user_id = :ownerUserId
+        ORDER BY start_date_epoch_millis ASC, title ASC
+        """
+    )
+    suspend fun getTripsByOwner(ownerUserId: String): List<TripEntity>
 
-    @Query("SELECT * FROM trips WHERE trip_id = :tripId LIMIT 1")
-    suspend fun getTripById(tripId: String): TripEntity?
+    @Query("SELECT * FROM trips WHERE trip_id = :tripId AND owner_user_id = :ownerUserId LIMIT 1")
+    suspend fun getTripByIdForOwner(tripId: String, ownerUserId: String): TripEntity?
 
-    @Query("SELECT COUNT(*) FROM trips WHERE title = :title")
-    suspend fun countTripsByTitle(title: String): Int
+    @Query("SELECT COUNT(*) FROM trips WHERE owner_user_id = :ownerUserId")
+    suspend fun countTripsByOwner(ownerUserId: String): Int
+
+    @Query("SELECT COUNT(*) FROM trips WHERE owner_user_id = :legacyOwnerUserId")
+    suspend fun countTripsByLegacyOwner(legacyOwnerUserId: String): Int
+
+    @Query("UPDATE trips SET owner_user_id = :newOwnerUserId WHERE owner_user_id = :legacyOwnerUserId")
+    suspend fun reassignTripsToOwner(newOwnerUserId: String, legacyOwnerUserId: String)
 
     @Update
     suspend fun updateTrip(trip: TripEntity)

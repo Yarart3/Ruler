@@ -32,12 +32,13 @@ fun TripEntity.toDomain(): Trip {
     )
 }
 
-fun Trip.toEntity(): TripEntity {
+fun Trip.toEntity(ownerUserId: String): TripEntity {
     val parsedBudget = parseBudget(budget)
     return TripEntity(
         id = id,
         title = title,
         destination = destination,
+        ownerUserId = ownerUserId,
         startDateEpochMillis = parseDate(startDate),
         endDateEpochMillis = parseDate(endDate),
         description = description,

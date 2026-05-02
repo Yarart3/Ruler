@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "trips",
     indices = [
+        Index(value = ["owner_user_id"]),
         Index(value = ["title"]),
         Index(value = ["destination"])
     ]
@@ -20,6 +21,8 @@ data class TripEntity(
     val title: String,
     @ColumnInfo(name = "destination")
     val destination: String,
+    @ColumnInfo(name = "owner_user_id")
+    val ownerUserId: String,
     @ColumnInfo(name = "start_date_epoch_millis")
     val startDateEpochMillis: Long,
     @ColumnInfo(name = "end_date_epoch_millis")

@@ -23,6 +23,11 @@ class TripActivityRepositoryTest {
 
     private lateinit var database: RulerDatabase
     private lateinit var repository: TripRepositoryImpl
+    private val authRepository = FakeAuthRepository(
+        userId = "user-1",
+        email = "user1@example.com",
+        username = "user1"
+    )
 
     @Before
     fun setUp() = runBlocking {
@@ -30,7 +35,7 @@ class TripActivityRepositoryTest {
         database = Room.inMemoryDatabaseBuilder(context, RulerDatabase::class.java)
             .allowMainThreadQueries()
             .build()
-        repository = TripRepositoryImpl(database.tripDao(), database.itineraryItemDao())
+        repository = TripRepositoryImpl(database.tripDao(), database.itineraryItemDao(), authRepository)
         repository.addTrip(
             Trip(
                 id = "trip-1",

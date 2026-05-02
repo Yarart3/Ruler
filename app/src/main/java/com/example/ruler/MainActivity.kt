@@ -5,21 +5,44 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import dagger.hilt.android.AndroidEntryPoint
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
-import com.example.ruler.ui.screens.*
+import com.example.ruler.ui.screens.AboutScreen
+import com.example.ruler.ui.screens.ActivityDetailScreen
+import com.example.ruler.ui.screens.AddActivityScreen
+import com.example.ruler.ui.screens.EditActivityScreen
+import com.example.ruler.ui.screens.EditTripScreen
+import com.example.ruler.ui.screens.ForgotPasswordScreen
+import com.example.ruler.ui.screens.GalleryScreen
+import com.example.ruler.ui.screens.HomeScreen
+import com.example.ruler.ui.screens.LoginScreen
+import com.example.ruler.ui.screens.NewTripScreen
+import com.example.ruler.ui.screens.PreferencesScreen
+import com.example.ruler.ui.screens.ProfileScreen
+import com.example.ruler.ui.screens.RegisterScreen
+import com.example.ruler.ui.screens.SplashScreen
+import com.example.ruler.ui.screens.TermsScreen
+import com.example.ruler.ui.screens.TripDetailScreen
+import com.example.ruler.ui.screens.TripOptionsScreen
 import com.example.ruler.ui.theme.RulerTheme
 import com.example.ruler.ui.viewmodels.AuthSessionState
 import com.example.ruler.ui.viewmodels.AuthViewModel
 import com.example.ruler.ui.viewmodels.TripListViewModel
+import com.example.ruler.ui.viewmodels.UserViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val viewModel: TripListViewModel by viewModels()
+    private val userViewModel: UserViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
         val lang = LocaleHelper.getSavedLanguage(newBase)
@@ -33,6 +56,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             var darkMode by remember { mutableStateOf(prefs.getBoolean("dark_mode", false)) }
             val authState by authViewModel.uiState.collectAsState()
+            val trips by viewModel.trips.collectAsState()
 
             RulerTheme(darkTheme = darkMode) {
                 var currentScreen by remember { mutableStateOf("splash") }
@@ -44,9 +68,17 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(authState.sessionState, authState.successMessage) {
                     if (authState.sessionState == AuthSessionState.Authenticated) {
+                        userViewModel.syncCurrentUser()
+                        viewModel.refreshSessionData()
                         currentScreen = "home"
                     } else if (authState.successMessage != null && currentScreen == "register") {
                         currentScreen = "login"
+                    } else if (
+                        authState.sessionState == AuthSessionState.RequiresLogin ||
+                        authState.sessionState == AuthSessionState.FirebaseNotConfigured
+                    ) {
+                        userViewModel.clearProfile()
+                        viewModel.clearSessionData()
                     }
                 }
 
@@ -63,8 +95,8 @@ class MainActivity : ComponentActivity() {
                     )
                 } else if (currentScreen == "register") {
                     RegisterScreen(
-                        onRegisterClick = { _, email, password ->
-                            authViewModel.register(email, password)
+                        onRegisterClick = { username, email, password ->
+                            authViewModel.register(username, email, password)
                         },
                         onNavigateToLogin = {
                             authViewModel.clearMessages()
@@ -237,6 +269,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToNewTrip = { currentScreen = "newTrip" }
                         )
                         "preferences" -> PreferencesScreen(
+                            userViewModel = userViewModel,
                             onNavigateBack = { currentScreen = "profile" },
                             onNavigateToHome = { currentScreen = "home" },
                             onNavigateToAbout = { currentScreen = "about" },
@@ -262,6 +295,8 @@ class MainActivity : ComponentActivity() {
                             onNavigateToHome = { currentScreen = "home" }
                         )
                         "profile" -> ProfileScreen(
+                            userViewModel = userViewModel,
+                            tripCount = trips.size,
                             onNavigateBack = { currentScreen = "home" },
                             onNavigateToHome = { currentScreen = "home" },
                             onNavigateToPreferences = { currentScreen = "preferences" },

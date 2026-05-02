@@ -109,7 +109,7 @@ class AuthViewModel @Inject constructor(
     fun clearResetState() {
         _uiState.value = _uiState.value.copy(resetEmailSent = false, resetErrorMessage = null)
     }
-    fun register(email: String, password: String) {
+    fun register(username: String, email: String, password: String) {
         Log.i(tag, "register: iniciant registre per email=$email")
         val sessionState = if (authRepository.isFirebaseConfigured()) {
             AuthSessionState.RequiresLogin
@@ -124,7 +124,7 @@ class AuthViewModel @Inject constructor(
         )
 
         viewModelScope.launch {
-            val result = authRepository.register(email.trim(), password)
+            val result = authRepository.register(username.trim(), email.trim(), password)
             _uiState.value = if (result.isSuccess) {
                 Log.i(tag, "register: registre completat per email=$email")
                 AuthUiState(

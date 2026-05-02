@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.ruler.domain.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -28,6 +29,12 @@ class AuthRepositoryImpl @Inject constructor(
             context.packageName
         ) != 0
     }
+
+    override fun currentUserId(): String? = auth.currentUser?.uid
+
+    override fun currentUserEmail(): String? = auth.currentUser?.email
+
+    override fun currentUsername(): String? = auth.currentUser?.displayName
 
     override suspend fun signIn(email: String, password: String): Result<Unit> {
         if (!isFirebaseConfigured()) {
@@ -54,7 +61,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun register(email: String, password: String): Result<Unit> {
+    override suspend fun register(username: String, email: String, password: String): Result<Unit> {
         if (!isFirebaseConfigured()) {
             Log.e(tag, "register: Firebase no configurat")
             return Result.failure(IllegalStateException("Firebase configuration is missing"))
@@ -64,8 +71,13 @@ class AuthRepositoryImpl @Inject constructor(
             Log.i(tag, "register: creant usuari amb email=$email")
             auth.createUserWithEmailAndPassword(email, password).await()
             val user = auth.currentUser ?: error("Registered user is missing")
+            user.updateProfile(
+                userProfileChangeRequest {
+                    displayName = username.trim()
+                }
+            ).await()
             user.sendEmailVerification().await()
-            Log.i(tag, "register: email de verificació enviat a $email")
+            Log.i(tag, "register: perfil i email de verificació configurats per $email")
             auth.signOut()
             Unit
         }.also { result ->

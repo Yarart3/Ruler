@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.ruler.data.local.RulerDatabase
 import com.example.ruler.data.local.dao.ItineraryItemDao
 import com.example.ruler.data.local.dao.TripDao
+import com.example.ruler.data.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,7 +26,7 @@ object DatabaseModule {
             context,
             RulerDatabase::class.java,
             "ruler_database"
-        ).build()
+        ).addMigrations(RulerDatabase.MIGRATION_1_2).build()
     }
 
     @Provides
@@ -34,4 +35,7 @@ object DatabaseModule {
     @Provides
     fun provideItineraryItemDao(database: RulerDatabase): ItineraryItemDao =
         database.itineraryItemDao()
+
+    @Provides
+    fun provideUserDao(database: RulerDatabase): UserDao = database.userDao()
 }
