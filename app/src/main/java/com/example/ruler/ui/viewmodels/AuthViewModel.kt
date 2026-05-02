@@ -3,6 +3,7 @@ package com.example.ruler.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ruler.domain.AccessLogRepository
 import com.example.ruler.domain.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -29,7 +30,8 @@ data class AuthUiState(
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val accessLogRepository: AccessLogRepository
 ) : ViewModel() {
 
     private val tag = "AuthViewModel"
@@ -73,6 +75,13 @@ class AuthViewModel @Inject constructor(
             val result = authRepository.signIn(email.trim(), password)
             _uiState.value = if (result.isSuccess) {
                 Log.i(tag, "signIn: login exitós")
+                authRepository.currentUserId()?.let { userId ->
+                    runCatching {
+                        accessLogRepository.recordLogin(userId)
+                    }.onFailure { error ->
+                        Log.e(tag, "signIn: error registrant log de login", error)
+                    }
+                }
                 AuthUiState(sessionState = AuthSessionState.Authenticated)
             } else {
                 val error = result.exceptionOrNull()?.localizedMessage
@@ -151,6 +160,16 @@ class AuthViewModel @Inject constructor(
 
     fun signOut() {
         Log.i(tag, "signOut: tancant sessió")
+        val currentUserId = authRepository.currentUserId()
+        if (currentUserId != null) {
+            viewModelScope.launch {
+                runCatching {
+                    accessLogRepository.recordLogout(currentUserId)
+                }.onFailure { error ->
+                    Log.e(tag, "signOut: error registrant log de logout", error)
+                }
+            }
+        }
         authRepository.signOut()
         _uiState.value = AuthUiState(sessionState = AuthSessionState.RequiresLogin)
         Log.i(tag, "signOut: estat actualitzat a RequiresLogin")

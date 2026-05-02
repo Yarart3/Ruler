@@ -1,8 +1,10 @@
 package com.example.ruler.di
 
+import com.example.ruler.data.repository.AccessLogRepositoryImpl
 import com.example.ruler.data.repository.TripRepositoryImpl
 import com.example.ruler.data.repository.UserRepositoryImpl
 import com.example.ruler.data.repository.AuthRepositoryImpl
+import com.example.ruler.domain.AccessLogRepository
 import com.example.ruler.domain.AuthRepository
 import com.example.ruler.domain.TripRepository
 import com.example.ruler.domain.UserRepository
@@ -15,6 +17,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindAccessLogRepository(
+        repository: AccessLogRepositoryImpl
+    ): AccessLogRepository
 
     @Binds
     @Singleton

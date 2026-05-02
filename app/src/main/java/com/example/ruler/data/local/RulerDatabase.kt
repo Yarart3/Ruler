@@ -5,20 +5,24 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.example.ruler.data.local.dao.AccessLogDao
 import com.example.ruler.data.local.dao.ItineraryItemDao
 import com.example.ruler.data.local.dao.TripDao
 import com.example.ruler.data.local.dao.UserDao
+import com.example.ruler.data.local.entity.AccessLogEntity
 import com.example.ruler.data.local.entity.ItineraryItemEntity
 import com.example.ruler.data.local.entity.TripEntity
 import com.example.ruler.data.local.entity.UserEntity
 
 @Database(
-    entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class],
-    version = 2,
+    entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class],
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(DateConverters::class)
 abstract class RulerDatabase : RoomDatabase() {
+    abstract fun accessLogDao(): AccessLogDao
+
     abstract fun tripDao(): TripDao
 
     abstract fun itineraryItemDao(): ItineraryItemDao
@@ -51,6 +55,30 @@ abstract class RulerDatabase : RoomDatabase() {
                 )
                 database.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_trips_owner_user_id` ON `trips` (`owner_user_id`)"
+                )
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `access_logs` (
+                        `log_id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `user_id` TEXT NOT NULL,
+                        `event_type` TEXT NOT NULL,
+                        `occurred_at_epoch_millis` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_access_logs_user_id` ON `access_logs` (`user_id`)"
+                )
+                database.execSQL(
+                    """
+                    CREATE INDEX IF NOT EXISTS `index_access_logs_occurred_at_epoch_millis`
+                    ON `access_logs` (`occurred_at_epoch_millis`)
+                    """.trimIndent()
                 )
             }
         }
