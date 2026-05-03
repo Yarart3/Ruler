@@ -128,19 +128,32 @@ CREATE INDEX IF NOT EXISTS `index_trips_owner_user_id` ON `trips` (`owner_user_i
 
 ---
 
-## 🔐 Autenticación
+## ✅ Validación de Datos (T5.2)
 
-La autenticación se gestiona con **Firebase Authentication** (email/contraseña).
+Toda la validación se realiza en la capa **ViewModel** antes de enviar datos al repositorio.
 
-| Funcionalidad | Implementación |
-|---------------|----------------|
-| Login | `FirebaseAuth.signInWithEmailAndPassword` |
-| Registro | `FirebaseAuth.createUserWithEmailAndPassword` |
-| Logout | `FirebaseAuth.signOut` |
-| Recuperar contraseña | `FirebaseAuth.sendPasswordResetEmail` |
-| Comprobar sesión | `FirebaseAuth.currentUser != null` |
+### Validaciones de viajes (`TripListViewModel`)
 
-El UID de Firebase se usa como `user_id` en la tabla `users` y como `owner_user_id` en `trips`.
+| Regla | Mensaje de error |
+|-------|-----------------|
+| Todos los campos son obligatorios | `"All fields are required"` |
+| El nombre debe tener mínimo 3 caracteres | `"Trip name must be at least 3 characters"` |
+| La fecha de inicio debe ser anterior a la de fin | `"Start date must be before end date"` |
+| El formato de fecha debe ser `dd/MM/yyyy` | `"Invalid date format (dd/MM/yyyy)"` |
+| No puede existir otro viaje con el mismo nombre | `"A trip with this name already exists"` |
+
+### Validaciones de actividades (`TripListViewModel`)
+
+| Regla | Mensaje de error |
+|-------|-----------------|
+| La fecha debe estar dentro del rango del viaje | `"Activity date must be within trip date range"` |
+| No puede existir otra actividad con el mismo nombre en el mismo viaje | `"An activity with this name already exists in this trip"` |
+
+### Validaciones de usuario (`UserDao`)
+
+| Regla | Implementación |
+|-------|---------------|
+| El username debe ser único | `countUsersByUsernameExcludingUserId` devuelve > 0 → rechazado |
 
 ---
 
@@ -179,17 +192,88 @@ El UID de Firebase se usa como `user_id` en la tabla `users` y como `owner_user_
 
 ---
 
+## 📝 Logging con Logcat (T5.3)
+
+Se usan logs en dos capas: **ViewModel** y **Repository**.
+
+### Niveles de log utilizados
+
+| Nivel | Uso |
+|-------|-----|
+| `Log.d` (DEBUG) | Estado interno, flujos de datos, selección de viaje |
+| `Log.i` (INFO) | Operaciones CRUD completadas correctamente |
+| `Log.w` (WARN) | Situaciones inesperadas no críticas (usuario no autenticado, viaje no encontrado) |
+| `Log.e` (ERROR) | Errores de validación, excepciones, fallos de BD |
+
+### Tags utilizados
+
+| Clase | Tag |
+|-------|-----|
+| `TripListViewModel` | `"TripListViewModel"` |
+| `TripRepositoryImpl` | `"TripRepositoryImpl"` |
+| `AuthViewModel` | `"AuthViewModel"` |
+| `AuthRepositoryImpl` | `"AuthRepository"` |
+
+### Ejemplos de logs en Logcat
+
+```
+I/TripListViewModel: Viaje creado correctamente: id=abc-123 title='Tokyo Adventure'
+E/TripListViewModel: Error de validación: nombre duplicado → 'Tokyo Adventure'
+I/TripRepositoryImpl: addTrip: viaje insertado correctamente id=abc-123
+W/TripRepositoryImpl: getTripById: viaje no encontrado id=xyz-999
+I/AuthRepository: signIn: login correcto para email=user@example.com
+E/AuthRepository: signIn: error → The email address is badly formatted
+```
+
+---
+
+## 🔐 Autenticación
+
+La autenticación se gestiona con **Firebase Authentication** (email/contraseña).
+
+| Funcionalidad | Implementación |
+|---------------|----------------|
+| Login | `FirebaseAuth.signInWithEmailAndPassword` |
+| Registro | `FirebaseAuth.createUserWithEmailAndPassword` |
+| Logout | `FirebaseAuth.signOut` |
+| Recuperar contraseña | `FirebaseAuth.sendPasswordResetEmail` |
+| Comprobar sesión | `FirebaseAuth.currentUser != null` |
+
+El UID de Firebase se usa como `user_id` en la tabla `users` y como `owner_user_id` en `trips`.
+
+---
+
 ## 🔁 Ejemplo de Flujo de Datos
 
 ### Crear un nuevo viaje
 ```
 NewTripScreen
     → TripListViewModel.addTrip(...)
+        → validateTrip() → comprueba campos, fechas, duplicados
+        → repository.addTrip(trip)
     → TripRepositoryImpl.addTrip(...)
-    → TripDao.insertTrip(TripEntity)
-    → SQLite (tabla trips)
+        → tripDao.insertTrip(TripEntity)
+        → SQLite (tabla trips)
     → TripDao.observeTripsByOwner emite nueva lista
     → TripListViewModel.trips StateFlow se actualiza
     → HomeScreen se recompone automáticamente
 ```
+
+### Crear una actividad (con validación de rango)
+```
+AddActivityScreen
+    → TripListViewModel.addActivity(tripId, title, date, ...)
+        → getTripById(tripId) → obtiene fechas del viaje
+        → parseDate(date) → valida formato
+        → comprueba que date ∈ [tripStart, tripEnd]
+        → comprueba título duplicado en el viaje
+        → repository.addActivity(activity)
+    → TripRepositoryImpl.addActivity(...)
+        → itineraryItemDao.insertItem(ItineraryItemEntity)
+    → observeActivitiesByTrip emite lista actualizada
+    → TripDetailScreen se recompone automáticamente
+```
+
 ---
+
+*Última actualización: Sprint 03 – T5.4*
