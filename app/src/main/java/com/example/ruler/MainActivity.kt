@@ -8,12 +8,14 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
+import com.example.ruler.domain.hasRequiredLocalData
 import com.example.ruler.ui.screens.AboutScreen
 import com.example.ruler.ui.screens.ActivityDetailScreen
 import com.example.ruler.ui.screens.AddActivityScreen
@@ -51,46 +53,127 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val prefs = getSharedPreferences("ruler_prefs", Context.MODE_PRIVATE)
+        val initialPreferences = AppPreferences.getActivePreferences(this)
 
         setContent {
-            var darkMode by remember { mutableStateOf(prefs.getBoolean("dark_mode", false)) }
+            var darkMode by remember { mutableStateOf(initialPreferences.darkMode) }
             val authState by authViewModel.uiState.collectAsState()
             val trips by viewModel.trips.collectAsState()
+            val userProfile by userViewModel.userProfile.collectAsState()
 
             RulerTheme(darkTheme = darkMode) {
                 var currentScreen by remember { mutableStateOf("splash") }
+                val backStack = remember { mutableStateListOf<String>() }
                 var selectedTripId by remember { mutableStateOf("1") }
                 var selectedTripIdForEdit by remember { mutableStateOf("1") }
                 var selectedActivity by remember { mutableStateOf<TripActivity?>(null) }
                 var selectedTrip by remember { mutableStateOf<Trip?>(null) }
                 var activityToEdit by remember { mutableStateOf<TripActivity?>(null) }
 
+                fun resetNavigation(screen: String) {
+                    backStack.clear()
+                    currentScreen = screen
+                }
+
+                fun navigateTo(screen: String, addCurrentToBackStack: Boolean = true) {
+                    if (currentScreen == screen) return
+                    if (addCurrentToBackStack && currentScreen != "splash") {
+                        backStack.add(currentScreen)
+                    }
+                    currentScreen = screen
+                }
+
+                fun navigateToTripsIfAvailable(addCurrentToBackStack: Boolean = true) {
+                    val firstTrip = trips.firstOrNull() ?: return
+                    if (trips.none { it.id == selectedTripId }) {
+                        selectedTripId = firstTrip.id
+                    }
+                    navigateTo("tripDetail", addCurrentToBackStack = addCurrentToBackStack)
+                }
+
+                fun goBack(fallback: String = "home") {
+                    while (backStack.isNotEmpty()) {
+                        val previousScreen = backStack.removeAt(backStack.lastIndex)
+                        if (previousScreen == "tripDetail" && trips.isEmpty()) {
+                            continue
+                        }
+                        if (previousScreen == "tripOptions" && selectedTrip == null) {
+                            continue
+                        }
+                        if (previousScreen == "activityDetail" && selectedActivity == null) {
+                            continue
+                        }
+                        if (previousScreen == "editActivity" && activityToEdit == null) {
+                            continue
+                        }
+                        if ((previousScreen == "editTrip" || previousScreen == "addActivity") && trips.isEmpty()) {
+                            continue
+                        }
+                        run {
+                            currentScreen = previousScreen
+                            return
+                        }
+                    }
+                    currentScreen = fallback
+                }
+
                 LaunchedEffect(authState.sessionState, authState.successMessage) {
                     if (authState.sessionState == AuthSessionState.Authenticated) {
                         userViewModel.syncCurrentUser()
                         viewModel.refreshSessionData()
-                        currentScreen = "home"
                     } else if (authState.successMessage != null && currentScreen == "register") {
-                        currentScreen = "login"
+                        resetNavigation("login")
                     } else if (
                         authState.sessionState == AuthSessionState.RequiresLogin ||
                         authState.sessionState == AuthSessionState.FirebaseNotConfigured
                     ) {
+                        val currentLanguage = AppPreferences.getActivePreferences(this@MainActivity).language
+                        AppPreferences.resetActivePreferences(this@MainActivity)
+                        darkMode = AppPreferences.DEFAULT_DARK_MODE
                         userViewModel.clearProfile()
                         viewModel.clearSessionData()
+                        resetNavigation("login")
+                        if (currentLanguage != AppPreferences.DEFAULT_LANGUAGE) {
+                            recreate()
+                        }
                     }
+                }
+
+                LaunchedEffect(
+                    authState.sessionState,
+                    userProfile?.id,
+                    userProfile?.username,
+                    userProfile?.birthDate,
+                    userProfile?.address,
+                    userProfile?.country,
+                    userProfile?.phone
+                ) {
+                    if (authState.sessionState != AuthSessionState.Authenticated) return@LaunchedEffect
+                    val profile = userProfile ?: return@LaunchedEffect
+                    val previousLanguage = AppPreferences.getActivePreferences(this@MainActivity).language
+                    val activePreferences = AppPreferences.activateUserPreferences(
+                        context = this@MainActivity,
+                        userId = profile.id
+                    )
+                    darkMode = activePreferences.darkMode
+                    if (previousLanguage != activePreferences.language) {
+                        recreate()
+                        return@LaunchedEffect
+                    }
+                    resetNavigation(if (profile.hasRequiredLocalData()) "home" else "preferences")
                 }
 
                 if (currentScreen == "splash") {
                     SplashScreen(
                         onSplashFinished = {
-                            currentScreen = when (authState.sessionState) {
+                            resetNavigation(
+                                when (authState.sessionState) {
                                 AuthSessionState.Authenticated -> "home"
                                 AuthSessionState.RequiresLogin,
                                 AuthSessionState.FirebaseNotConfigured,
                                 AuthSessionState.Checking -> "login"
-                            }
+                                }
+                            )
                         }
                     )
                 } else if (currentScreen == "register") {
@@ -100,7 +183,7 @@ class MainActivity : ComponentActivity() {
                         },
                         onNavigateToLogin = {
                             authViewModel.clearMessages()
-                            currentScreen = "login"
+                            resetNavigation("login")
                         },
                         isLoading = authState.isLoading,
                         errorMessage = authState.errorMessage ?: if (
@@ -116,7 +199,7 @@ class MainActivity : ComponentActivity() {
                     ForgotPasswordScreen(
                         onNavigateToLogin = {
                             authViewModel.clearResetState()
-                            currentScreen = "login"
+                            goBack("login")
                         },
                         onSendClick = { email ->
                             authViewModel.sendPasswordResetEmail(email)
@@ -134,9 +217,9 @@ class MainActivity : ComponentActivity() {
                         onLoginClick = authViewModel::signIn,
                         onNavigateToRegister = {
                             authViewModel.clearMessages()
-                            currentScreen = "register"
+                            navigateTo("register", addCurrentToBackStack = false)
                         },
-                        onNavigateToForgotPassword = { currentScreen = "forgotPassword" },
+                        onNavigateToForgotPassword = { navigateTo("forgotPassword", addCurrentToBackStack = false) },
                         isLoading = authState.isLoading,
                         errorMessage = authState.errorMessage ?: if (
                             authState.sessionState == AuthSessionState.FirebaseNotConfigured
@@ -153,174 +236,174 @@ class MainActivity : ComponentActivity() {
                             viewModel = viewModel,
                             onTripClick = { tripId ->
                                 selectedTripId = tripId
-                                currentScreen = "tripDetail"
+                                navigateTo("tripDetail")
                             },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToProfile = { currentScreen = "profile" },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToTripOptions = { trip ->
                                 selectedTrip = trip
-                                currentScreen = "tripOptions"
+                                navigateTo("tripOptions")
                             },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" }
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                         "newTrip" -> NewTripScreen(
                             viewModel = viewModel,
-                            onNavigateBack = { currentScreen = "home" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToProfile = { currentScreen = "profile" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToTrips = { currentScreen = "tripDetail" }
+                            onNavigateBack = { goBack() },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToTrips = { navigateToTripsIfAvailable() }
                         )
                         "editTrip" -> EditTripScreen(
                             viewModel = viewModel,
                             tripId = selectedTripIdForEdit,
-                            onNavigateBack = { currentScreen = "tripDetail" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToProfile = { currentScreen = "profile" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToTrips = { currentScreen = "tripDetail" }
+                            onNavigateBack = { goBack("tripDetail") },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToTrips = { navigateToTripsIfAvailable() }
                         )
                         "tripOptions" -> selectedTrip?.let { trip ->
                             TripOptionsScreen(
                                 viewModel = viewModel,
                                 trip = trip,
-                                onNavigateBack = { currentScreen = "home" },
-                                onNavigateToHome = { currentScreen = "home" },
-                                onNavigateToGallery = { currentScreen = "gallery" },
-                                onNavigateToProfile = { currentScreen = "profile" },
-                                onNavigateToPreferences = { currentScreen = "preferences" },
-                                onNavigateToAbout = { currentScreen = "about" },
+                                onNavigateBack = { goBack() },
+                                onNavigateToHome = { resetNavigation("home") },
+                                onNavigateToGallery = { navigateTo("gallery") },
+                                onNavigateToProfile = { navigateTo("profile") },
+                                onNavigateToPreferences = { navigateTo("preferences") },
+                                onNavigateToAbout = { navigateTo("about") },
                                 onNavigateToEdit = { tripId ->
                                     selectedTripIdForEdit = tripId
-                                    currentScreen = "editTrip"
+                                    navigateTo("editTrip")
                                 },
-                                onNavigateToNewTrip = { currentScreen = "newTrip" }
+                                onNavigateToNewTrip = { navigateTo("newTrip") }
                             )
                         }
                         "tripDetail" -> TripDetailScreen(
                             viewModel = viewModel,
                             tripId = selectedTripId,
-                            onNavigateBack = { currentScreen = "home" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToProfile = { currentScreen = "profile" },
+                            onNavigateBack = { goBack() },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToActivityDetail = { activity ->
                                 selectedActivity = activity
-                                currentScreen = "activityDetail"
+                                navigateTo("activityDetail")
                             },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" },
-                            onNavigateToAddActivity = { currentScreen = "addActivity" },
+                            onNavigateToNewTrip = { navigateTo("newTrip") },
+                            onNavigateToAddActivity = { navigateTo("addActivity") },
                             onNavigateToEditActivity = { activity ->
                                 activityToEdit = activity
-                                currentScreen = "editActivity"
+                                navigateTo("editActivity")
                             }
                         )
                         "addActivity" -> AddActivityScreen(
                             viewModel = viewModel,
                             tripId = selectedTripId,
-                            onNavigateBack = { currentScreen = "tripDetail" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToProfile = { currentScreen = "profile" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" }
+                            onNavigateBack = { goBack("tripDetail") },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                         "editActivity" -> activityToEdit?.let { activity ->
                             EditActivityScreen(
                                 viewModel = viewModel,
                                 activity = activity,
-                                onNavigateBack = { currentScreen = "tripDetail" },
-                                onNavigateToHome = { currentScreen = "home" },
-                                onNavigateToGallery = { currentScreen = "gallery" },
-                                onNavigateToProfile = { currentScreen = "profile" },
-                                onNavigateToPreferences = { currentScreen = "preferences" },
-                                onNavigateToAbout = { currentScreen = "about" },
-                                onNavigateToNewTrip = { currentScreen = "newTrip" }
+                                onNavigateBack = { goBack("tripDetail") },
+                                onNavigateToHome = { resetNavigation("home") },
+                                onNavigateToGallery = { navigateTo("gallery") },
+                                onNavigateToProfile = { navigateTo("profile") },
+                                onNavigateToPreferences = { navigateTo("preferences") },
+                                onNavigateToAbout = { navigateTo("about") },
+                                onNavigateToNewTrip = { navigateTo("newTrip") }
                             )
                         }
                         "activityDetail" -> selectedActivity?.let { activity ->
                             ActivityDetailScreen(
                                 activity = activity,
-                                onNavigateBack = { currentScreen = "tripDetail" },
-                                onNavigateToHome = { currentScreen = "home" },
-                                onNavigateToGallery = { currentScreen = "gallery" },
-                                onNavigateToProfile = { currentScreen = "profile" },
-                                onNavigateToPreferences = { currentScreen = "preferences" },
-                                onNavigateToAbout = { currentScreen = "about" },
-                                onNavigateToNewTrip = { currentScreen = "newTrip" }
+                                onNavigateBack = { goBack("tripDetail") },
+                                onNavigateToHome = { resetNavigation("home") },
+                                onNavigateToGallery = { navigateTo("gallery") },
+                                onNavigateToProfile = { navigateTo("profile") },
+                                onNavigateToPreferences = { navigateTo("preferences") },
+                                onNavigateToAbout = { navigateTo("about") },
+                                onNavigateToNewTrip = { navigateTo("newTrip") }
                             )
                         }
                         "gallery" -> GalleryScreen(
-                            onNavigateBack = { currentScreen = "home" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToTrips = { currentScreen = "tripDetail" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToProfile = { currentScreen = "profile" },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" }
+                            onNavigateBack = { goBack() },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                         "preferences" -> PreferencesScreen(
                             userViewModel = userViewModel,
-                            onNavigateBack = { currentScreen = "profile" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToTrips = { currentScreen = "tripDetail" },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToProfile = { currentScreen = "profile" },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" },
+                            onNavigateBack = { goBack() },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToNewTrip = { navigateTo("newTrip") },
                             onDarkModeChange = { isDark -> darkMode = isDark },
                             onLanguageChange = { recreate() }
                         )
                         "about" -> AboutScreen(
-                            onNavigateBack = { currentScreen = "home" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToTerms = { currentScreen = "terms" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToTrips = { currentScreen = "tripDetail" },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToProfile = { currentScreen = "profile" },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" }
+                            onNavigateBack = { goBack() },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToTerms = { navigateTo("terms") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                         "terms" -> TermsScreen(
-                            onNavigateBack = { currentScreen = "about" },
-                            onNavigateToHome = { currentScreen = "home" }
+                            onNavigateBack = { goBack("about") },
+                            onNavigateToHome = { resetNavigation("home") }
                         )
                         "profile" -> ProfileScreen(
                             userViewModel = userViewModel,
                             tripCount = trips.size,
-                            onNavigateBack = { currentScreen = "home" },
-                            onNavigateToHome = { currentScreen = "home" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToTrips = { currentScreen = "tripDetail" },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" },
+                            onNavigateBack = { goBack() },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToNewTrip = { navigateTo("newTrip") },
                             onLogout = { authViewModel.signOut() }
                         )
                         else -> HomeScreen(
                             viewModel = viewModel,
                             onTripClick = { tripId ->
                                 selectedTripId = tripId
-                                currentScreen = "tripDetail"
+                                navigateTo("tripDetail")
                             },
-                            onNavigateToGallery = { currentScreen = "gallery" },
-                            onNavigateToPreferences = { currentScreen = "preferences" },
-                            onNavigateToAbout = { currentScreen = "about" },
-                            onNavigateToProfile = { currentScreen = "profile" },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToTripOptions = { trip ->
                                 selectedTrip = trip
-                                currentScreen = "tripOptions"
+                                navigateTo("tripOptions")
                             },
-                            onNavigateToNewTrip = { currentScreen = "newTrip" }
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                     }
                 }

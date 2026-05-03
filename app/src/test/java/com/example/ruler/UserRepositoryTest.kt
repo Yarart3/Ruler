@@ -11,6 +11,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -62,10 +63,10 @@ class UserRepositoryTest {
                 id = "user-2",
                 email = "user2@example.com",
                 username = "duplicate",
-                birthDate = "",
-                address = "",
-                country = "",
-                phone = "",
+                birthDate = "01/01/2000",
+                address = "Street 2",
+                country = "Spain",
+                phone = "999999999",
                 acceptsMarketingEmails = false
             ).toEntity()
         )
@@ -76,10 +77,10 @@ class UserRepositoryTest {
                     id = "user-1",
                     email = "user1@example.com",
                     username = "duplicate",
-                    birthDate = "",
-                    address = "",
-                    country = "",
-                    phone = "",
+                    birthDate = "15/08/2000",
+                    address = "Street 1",
+                    country = "Spain",
+                    phone = "123456789",
                     acceptsMarketingEmails = false
                 )
             )
@@ -91,5 +92,51 @@ class UserRepositoryTest {
 
         val error = result.exceptionOrNull()
         assertEquals("Username is already in use", error?.message)
+    }
+
+    @Test
+    fun saveCurrentUserProfile_rejectsMissingRequiredFields() = runBlocking {
+        val result = runCatching {
+            repository.saveCurrentUserProfile(
+                UserProfile(
+                    id = "user-1",
+                    email = "user1@example.com",
+                    username = "user1",
+                    birthDate = "",
+                    address = "Street 1",
+                    country = "Spain",
+                    phone = "123456789",
+                    acceptsMarketingEmails = false
+                )
+            )
+        }
+
+        assertFalse(result.isSuccess)
+        assertEquals("Birth date is required", result.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun saveCurrentUserProfile_persistsAllRequiredFields() = runBlocking {
+        repository.saveCurrentUserProfile(
+            UserProfile(
+                id = "user-1",
+                email = "user1@example.com",
+                username = "user1",
+                birthDate = "15/08/2000",
+                address = "Street 1",
+                country = "Spain",
+                phone = "123456789",
+                acceptsMarketingEmails = true
+            )
+        )
+
+        val user = repository.getCurrentUser()
+
+        assertNotNull(user)
+        assertEquals("15/08/2000", user?.birthDate)
+        assertEquals("Street 1", user?.address)
+        assertEquals("Spain", user?.country)
+        assertEquals("123456789", user?.phone)
+        assertEquals(true, user?.acceptsMarketingEmails)
     }
 }

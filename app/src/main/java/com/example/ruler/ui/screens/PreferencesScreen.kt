@@ -65,14 +65,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.ruler.AppPreferences
 import com.example.ruler.R
+import com.example.ruler.domain.hasRequiredLocalData
 import com.example.ruler.ui.viewmodels.UserViewModel
 import java.util.Calendar
 import androidx.compose.foundation.text.KeyboardOptions
-
-private const val PREFS_NAME = "ruler_prefs"
-private const val KEY_DARK_MODE = "dark_mode"
-private const val KEY_LANGUAGE = "language"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,9 +87,11 @@ fun PreferencesScreen(
     onLanguageChange: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val userProfile by userViewModel.userProfile.collectAsState()
     val uiState by userViewModel.uiState.collectAsState()
+    val activePreferences = remember(userProfile?.id) {
+        AppPreferences.getActivePreferences(context)
+    }
 
     var username by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf("") }
@@ -99,8 +99,8 @@ fun PreferencesScreen(
     var country by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var acceptsMarketingEmails by remember { mutableStateOf(false) }
-    var darkTheme by remember { mutableStateOf(prefs.getBoolean(KEY_DARK_MODE, false)) }
-    var selectedLanguage by remember { mutableStateOf(prefs.getString(KEY_LANGUAGE, "en") ?: "en") }
+    var darkTheme by remember(userProfile?.id) { mutableStateOf(activePreferences.darkMode) }
+    var selectedLanguage by remember(userProfile?.id) { mutableStateOf(activePreferences.language) }
 
     val languages = listOf("en" to "English", "ca" to "Català", "es" to "Español")
     var showLanguageMenu by remember { mutableStateOf(false) }
@@ -115,6 +115,9 @@ fun PreferencesScreen(
             phone = profile.phone
             acceptsMarketingEmails = profile.acceptsMarketingEmails
         }
+        val preferences = AppPreferences.getActivePreferences(context)
+        darkTheme = preferences.darkMode
+        selectedLanguage = preferences.language
     }
 
     val cal = Calendar.getInstance()
@@ -209,6 +212,14 @@ fun PreferencesScreen(
         ) {
             PreferenceSectionTitle(title = stringResource(R.string.profile_section))
             PreferenceCard {
+                if (userProfile != null && !userProfile!!.hasRequiredLocalData()) {
+                    Text(
+                        text = stringResource(R.string.complete_profile_required),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
                 OutlinedTextField(
                     value = userProfile?.email.orEmpty(),
                     onValueChange = { },
@@ -249,14 +260,8 @@ fun PreferencesScreen(
                         .clickable { datePickerDialog.show() },
                     shape = RoundedCornerShape(12.dp),
                     readOnly = true,
-                    enabled = false,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    enabled = true,
+                    colors = OutlinedTextFieldDefaults.colors()
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
@@ -403,8 +408,14 @@ fun PreferencesScreen(
                                 DropdownMenuItem(
                                     text = { Text(label) },
                                     onClick = {
+                                        val userId = userProfile?.id ?: return@DropdownMenuItem
                                         selectedLanguage = code
-                                        prefs.edit().putString(KEY_LANGUAGE, code).apply()
+                                        AppPreferences.updateUserPreferences(
+                                            context = context,
+                                            userId = userId,
+                                            language = code,
+                                            darkMode = darkTheme
+                                        )
                                         showLanguageMenu = false
                                         onLanguageChange()
                                     }
@@ -445,8 +456,14 @@ fun PreferencesScreen(
                     Switch(
                         checked = darkTheme,
                         onCheckedChange = { enabled ->
+                            val userId = userProfile?.id ?: return@Switch
                             darkTheme = enabled
-                            prefs.edit().putBoolean(KEY_DARK_MODE, enabled).apply()
+                            AppPreferences.updateUserPreferences(
+                                context = context,
+                                userId = userId,
+                                language = selectedLanguage,
+                                darkMode = enabled
+                            )
                             onDarkModeChange(enabled)
                         }
                     )

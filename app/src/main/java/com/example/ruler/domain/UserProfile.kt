@@ -10,3 +10,11 @@ data class UserProfile(
     val phone: String,
     val acceptsMarketingEmails: Boolean
 )
+
+fun UserProfile.hasRequiredLocalData(): Boolean {
+    return username.isNotBlank() &&
+        birthDate.isNotBlank() &&
+        address.isNotBlank() &&
+        country.isNotBlank() &&
+        phone.isNotBlank()
+}
