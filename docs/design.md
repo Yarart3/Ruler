@@ -273,7 +273,3 @@ AddActivityScreen
     → observeActivitiesByTrip emite lista actualizada
     → TripDetailScreen se recompone automáticamente
 ```
-
----
-
-*Última actualización: Sprint 03 – T5.4*
