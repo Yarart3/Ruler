@@ -1,7 +1,6 @@
 package com.example.ruler.data.repository
 
 import android.util.Log
-import com.example.ruler.data.fakeDB.FakeTripDataSource
 import com.example.ruler.data.local.dao.ItineraryItemDao
 import com.example.ruler.data.local.dao.TripDao
 import com.example.ruler.domain.AuthRepository
@@ -113,39 +112,11 @@ class TripRepositoryImpl @Inject constructor(
     }
 
     override suspend fun seedInitialDataIfNeeded() {
-        val currentUserId = authRepository.currentUserId() ?: run {
+        if (authRepository.currentUserId() == null) {
             Log.w(TAG, "seedInitialDataIfNeeded: no hay usuario autenticado")
             return
         }
-        claimLegacyTripsIfNeeded(currentUserId)
-        if (tripDao.getTripsByOwner(currentUserId).isNotEmpty()) {
-            Log.d(TAG, "seedInitialDataIfNeeded: el usuario ya tiene datos, omitiendo seed")
-            return
-        }
-        Log.i(TAG, "seedInitialDataIfNeeded: insertando datos iniciales para userId=$currentUserId")
-        tripDao.insertTrips(FakeTripDataSource.trips.map { it.toEntity(currentUserId) })
-        if (FakeTripDataSource.activities.isNotEmpty()) {
-            itineraryItemDao.insertItems(
-                FakeTripDataSource.activities.mapIndexed { index, activity ->
-                    activity.toEntity(displayOrder = index + 1)
-                }
-            )
-        }
-        Log.i(TAG, "seedInitialDataIfNeeded: datos iniciales insertados correctamente")
-    }
-
-    private suspend fun claimLegacyTripsIfNeeded(currentUserId: String) {
-        if (tripDao.countTripsByOwner(currentUserId) > 0) {
-            Log.d(TAG, "claimLegacyTrips: el usuario ya tiene viajes propios, omitiendo")
-            return
-        }
-        if (tripDao.countTripsByLegacyOwner(LEGACY_OWNER_USER_ID) == 0) {
-            Log.d(TAG, "claimLegacyTrips: no hay viajes legacy que reclamar")
-            return
-        }
-        Log.i(TAG, "claimLegacyTrips: reasignando viajes legacy a userId=$currentUserId")
-        tripDao.reassignTripsToOwner(currentUserId, LEGACY_OWNER_USER_ID)
-        Log.i(TAG, "claimLegacyTrips: viajes reasignados correctamente")
+        Log.d(TAG, "seedInitialDataIfNeeded: sin seed por defecto para el usuario autenticado")
     }
 
     private fun requireCurrentUserId(): String {
@@ -157,6 +128,5 @@ class TripRepositoryImpl @Inject constructor(
 
     companion object {
         private const val TAG = "TripRepositoryImpl"
-        private const val LEGACY_OWNER_USER_ID = "legacy_local_user"
     }
 }

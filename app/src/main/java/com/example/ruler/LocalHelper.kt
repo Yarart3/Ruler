@@ -14,7 +14,6 @@ object LocaleHelper {
     }
 
     fun getSavedLanguage(context: Context): String {
-        val prefs = context.getSharedPreferences("ruler_prefs", Context.MODE_PRIVATE)
-        return prefs.getString("language", "en") ?: "en"
+        return AppPreferences.getActivePreferences(context).language
     }
 }

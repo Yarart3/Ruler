@@ -58,6 +58,11 @@
     <string name="required">Obligatorio</string>
     <string name="next_trip">Próximo viaje ✈️</string>
     <string name="all_trips">Todos los viajes</string>
+    <string name="empty_trips_title">Añade tu primer viaje para empezar</string>
+    <string name="empty_trips_subtitle">Tus viajes son personales y quedan vinculados a tu cuenta. Empieza con un destino y construye el resto desde ahí.</string>
+    <string name="empty_trips_hint_plan">Planifica tu ruta</string>
+    <string name="empty_trips_hint_save">Guárdalo localmente</string>
+    <string name="empty_trips_cta">Crear mi primer viaje</string>
     <string name="about">Acerca de</string>
     <string name="app_tagline">Tu compañero de viaje</string>
     <string name="team">Equipo</string>
@@ -142,6 +147,7 @@
     <string name="receive_emails">Recibir correos</string>
     <string name="receive_emails_hint">Permite actualizaciones de viajes y avisos ocasionales</string>
     <string name="save_profile">Guardar perfil</string>
+    <string name="complete_profile_required">Completa tu perfil antes de continuar. La fecha de nacimiento, dirección, país y teléfono son obligatorios.</string>
     <string name="contact_details">Datos de contacto</string>
     <string name="not_provided">No indicado</string>
     <string name="yes">Sí</string>

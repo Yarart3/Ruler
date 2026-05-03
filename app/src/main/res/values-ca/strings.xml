@@ -58,6 +58,11 @@
     <string name="required">Obligatori</string>
     <string name="next_trip">Proper viatge ✈️</string>
     <string name="all_trips">Tots els viatges</string>
+    <string name="empty_trips_title">Afegeix el teu primer viatge per començar</string>
+    <string name="empty_trips_subtitle">Els teus viatges són personals i queden vinculats al teu compte. Comença amb una destinació i construeix la resta des d\'aquí.</string>
+    <string name="empty_trips_hint_plan">Planifica la ruta</string>
+    <string name="empty_trips_hint_save">Desa-ho localment</string>
+    <string name="empty_trips_cta">Crear el meu primer viatge</string>
     <string name="about">Sobre</string>
     <string name="app_tagline">El teu company de viatge</string>
     <string name="team">Equip</string>
@@ -142,6 +147,7 @@
     <string name="receive_emails">Rebre correus</string>
     <string name="receive_emails_hint">Permet actualitzacions de viatges i avisos ocasionals</string>
     <string name="save_profile">Desar perfil</string>
+    <string name="complete_profile_required">Completa el teu perfil abans de continuar. La data de naixement, l\'adreça, el país i el telèfon són obligatoris.</string>
     <string name="contact_details">Dades de contacte</string>
     <string name="not_provided">No indicat</string>
     <string name="yes">Sí</string>

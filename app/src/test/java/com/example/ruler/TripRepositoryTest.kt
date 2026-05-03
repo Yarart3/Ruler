@@ -115,6 +115,39 @@ class TripRepositoryTest {
         assertEquals("Mine", trips.single().title)
     }
 
+    @Test
+    fun seedInitialDataIfNeeded_doesNotCreateDefaultTripsForNewUsers() = runBlocking {
+        repository.seedInitialDataIfNeeded()
+
+        val trips = repository.observeTrips().first()
+
+        assertTrue(trips.isEmpty())
+    }
+
+    @Test
+    fun seedInitialDataIfNeeded_keepsLegacyTripsHiddenForNewUsers() = runBlocking {
+        database.tripDao().insertTrip(
+            com.example.ruler.data.local.entity.TripEntity(
+                id = "legacy-trip",
+                title = "Legacy",
+                destination = "Lleida, Spain",
+                ownerUserId = "legacy_local_user",
+                startDateEpochMillis = 1_000L,
+                endDateEpochMillis = 2_000L,
+                description = "Legacy trip",
+                budgetAmount = 100,
+                budgetCurrency = "EUR",
+                emoji = "🧭"
+            )
+        )
+
+        repository.seedInitialDataIfNeeded()
+
+        val trips = repository.observeTrips().first()
+
+        assertTrue(trips.isEmpty())
+    }
+
     private fun createTrip(
         id: String,
         title: String = "Trip",

@@ -57,9 +57,7 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun saveCurrentUserProfile(profile: UserProfile) {
         val currentUserId = authRepository.currentUserId()
             ?: throw IllegalStateException("No authenticated user")
-        if (profile.username.isBlank()) {
-            throw IllegalArgumentException("Username is required")
-        }
+        validateProfile(profile)
         val duplicatedUsers = userDao.countUsersByUsernameExcludingUserId(
             username = profile.username.trim(),
             userId = currentUserId
@@ -75,5 +73,26 @@ class UserRepositoryImpl @Inject constructor(
                 username = profile.username.trim()
             ).toEntity()
         )
+    }
+
+    private fun validateProfile(profile: UserProfile) {
+        if (profile.username.isBlank()) {
+            throw IllegalArgumentException("Username is required")
+        }
+        if (profile.birthDate.isBlank()) {
+            throw IllegalArgumentException("Birth date is required")
+        }
+        if (profile.toEntity().birthDate == null) {
+            throw IllegalArgumentException("Birth date must use the format dd/MM/yyyy")
+        }
+        if (profile.address.isBlank()) {
+            throw IllegalArgumentException("Address is required")
+        }
+        if (profile.country.isBlank()) {
+            throw IllegalArgumentException("Country is required")
+        }
+        if (profile.phone.isBlank()) {
+            throw IllegalArgumentException("Phone is required")
+        }
     }
 }

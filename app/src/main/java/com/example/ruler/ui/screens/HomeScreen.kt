@@ -1,10 +1,12 @@
 package com.example.ruler.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,6 +37,7 @@ fun HomeScreen(
     onNavigateToNewTrip: () -> Unit = {}
 ) {
     val trips by viewModel.trips.collectAsState()
+    val hasTrips = trips.isNotEmpty()
     val nextTrip = trips.firstOrNull()
     val otherTrips = trips.drop(1)
 
@@ -118,24 +122,53 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(vertical = 20.dp)
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.next_trip),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                nextTrip?.let { trip ->
-                    NextTripCard(
+        if (!hasTrips) {
+            EmptyTripsState(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(20.dp),
+                onCreateTrip = onNavigateToNewTrip
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(vertical = 20.dp)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.next_trip),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    nextTrip?.let { trip ->
+                        NextTripCard(
+                            trip = trip,
+                            onClick = {
+                                viewModel.selectTrip(trip.id)
+                                onTripClick(trip.id)
+                            },
+                            onOptionsClick = { onNavigateToTripOptions(trip) }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = stringResource(R.string.all_trips),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                items(otherTrips) { trip ->
+                    SmallTripCard(
                         trip = trip,
                         onClick = {
                             viewModel.selectTrip(trip.id)
@@ -144,25 +177,94 @@ fun HomeScreen(
                         onOptionsClick = { onNavigateToTripOptions(trip) }
                     )
                 }
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text = stringResource(R.string.all_trips),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
             }
+        }
+    }
+}
 
-            items(otherTrips) { trip ->
-                SmallTripCard(
-                    trip = trip,
-                    onClick = {
-                        viewModel.selectTrip(trip.id)
-                        onTripClick(trip.id)
-                    },
-                    onOptionsClick = { onNavigateToTripOptions(trip) }
+@Composable
+private fun EmptyTripsState(
+    modifier: Modifier = Modifier,
+    onCreateTrip: () -> Unit
+) {
+    Box(
+        modifier = modifier
+    ) {
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f)
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(94.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                            shape = CircleShape
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "✈️",
+                        fontSize = 42.sp
+                    )
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = stringResource(R.string.empty_trips_title),
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.empty_trips_subtitle),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SuggestionChip(
+                        onClick = { },
+                        label = { Text(stringResource(R.string.empty_trips_hint_plan)) }
+                    )
+                    SuggestionChip(
+                        onClick = { },
+                        label = { Text(stringResource(R.string.empty_trips_hint_save)) }
+                    )
+                }
+                Spacer(modifier = Modifier.height(26.dp))
+                Button(
+                    onClick = onCreateTrip,
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.empty_trips_cta),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
     }
@@ -177,17 +279,26 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.98f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.94f),
+                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.28f)
+                        )
+                    )
+                )
                 .padding(20.dp)
         ) {
             Text(
                 text = trip.emoji,
                 fontSize = 90.sp,
-                modifier = Modifier.align(Alignment.CenterEnd).offset(x = 10.dp)
+                modifier = Modifier.align(Alignment.CenterEnd).offset(x = 6.dp)
             )
             IconButton(
                 onClick = onOptionsClick,
@@ -196,7 +307,11 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
                 Icon(Icons.Default.MoreVert, contentDescription = "Options",
                     tint = MaterialTheme.colorScheme.onPrimary)
             }
-            Column(modifier = Modifier.align(Alignment.BottomStart)) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(end = 86.dp)
+            ) {
                 Text(
                     text = trip.title,
                     style = MaterialTheme.typography.headlineLarge,
@@ -231,19 +346,26 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
 fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {}) {
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
+            modifier = Modifier.fillMaxWidth().padding(15.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.primaryContainer),
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                MaterialTheme.colorScheme.surface
+                            )
+                        )
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = trip.emoji, fontSize = 24.sp)
