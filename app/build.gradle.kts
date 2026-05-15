@@ -21,6 +21,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "HOTEL_API_BASE_URL", "\"http://15.224.84.148:8090/\"")
+        buildConfigField("String", "HOTEL_API_GROUP_ID", "\"G02\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -39,6 +42,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
@@ -70,6 +74,9 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.logging)
     kapt(libs.androidx.room.compiler)
     kapt(libs.hilt.compiler)
     testImplementation(libs.junit)
