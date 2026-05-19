@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ruler.R
 import com.example.ruler.domain.Hotel
+import com.example.ruler.domain.HotelRoom
 import com.example.ruler.ui.viewmodels.HotelViewModel
 import java.util.Calendar
 
@@ -423,9 +424,6 @@ private fun SearchFormCard(
 
 @Composable
 private fun HotelResultCard(hotel: Hotel) {
-    val minPrice = hotel.rooms.minOfOrNull { it.price }
-    val maxPrice = hotel.rooms.maxOfOrNull { it.price }
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -473,40 +471,48 @@ private fun HotelResultCard(hotel: Hotel) {
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        Icons.Default.MeetingRoom,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = stringResource(R.string.rooms_count, hotel.rooms.size),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                if (minPrice != null && maxPrice != null) {
-                    Text(
-                        text = if (minPrice == maxPrice) {
-                            stringResource(R.string.price_per_night, minPrice)
-                        } else {
-                            stringResource(R.string.price_range_per_night, minPrice, maxPrice)
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+            Text(
+                text = stringResource(R.string.available_rooms),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            hotel.rooms.forEach { room ->
+                RoomRow(room = room)
             }
         }
+    }
+}
+
+@Composable
+private fun RoomRow(room: HotelRoom) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.weight(1f)
+        ) {
+            Icon(
+                Icons.Default.MeetingRoom,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = room.roomType,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        Text(
+            text = stringResource(R.string.price_per_night, room.price),
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }

@@ -170,4 +170,5 @@
     <string name="price_per_night">€%.0f/nit</string>
     <string name="price_range_per_night">€%.0f – €%.0f/nit</string>
     <string name="london_paris_barcelona">Londres · París · Barcelona</string>
+    <string name="available_rooms">Habitacions disponibles</string>
 </resources>
