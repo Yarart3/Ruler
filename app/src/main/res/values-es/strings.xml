@@ -152,4 +152,16 @@
     <string name="not_provided">No indicado</string>
     <string name="yes">Sí</string>
     <string name="no">No</string>
+    <string name="hotel_search">Búsqueda de hoteles</string>
+    <string name="hotel_search_title">Buscar hoteles</string>
+    <string name="find_hotels">Buscar hoteles</string>
+    <string name="city">Ciudad</string>
+    <string name="select_city">Selecciona una ciudad</string>
+    <string name="search_hotels">Buscar hoteles</string>
+    <string name="available_hotels">Hoteles disponibles</string>
+    <string name="no_hotels_found">No hay hoteles disponibles para las fechas seleccionadas.</string>
+    <string name="rooms_count">%d habitaciones</string>
+    <string name="price_per_night">€%.0f/noche</string>
+    <string name="price_range_per_night">€%.0f – €%.0f/noche</string>
+    <string name="london_paris_barcelona">Londres · París · Barcelona</string>
 </resources>

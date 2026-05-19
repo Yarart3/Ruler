@@ -24,6 +24,7 @@ import com.example.ruler.ui.screens.EditTripScreen
 import com.example.ruler.ui.screens.ForgotPasswordScreen
 import com.example.ruler.ui.screens.GalleryScreen
 import com.example.ruler.ui.screens.HomeScreen
+import com.example.ruler.ui.screens.HotelSearchScreen
 import com.example.ruler.ui.screens.LoginScreen
 import com.example.ruler.ui.screens.NewTripScreen
 import com.example.ruler.ui.screens.PreferencesScreen
@@ -36,6 +37,7 @@ import com.example.ruler.ui.screens.TripOptionsScreen
 import com.example.ruler.ui.theme.RulerTheme
 import com.example.ruler.ui.viewmodels.AuthSessionState
 import com.example.ruler.ui.viewmodels.AuthViewModel
+import com.example.ruler.ui.viewmodels.HotelViewModel
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import com.example.ruler.ui.viewmodels.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,6 +47,7 @@ class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val viewModel: TripListViewModel by viewModels()
     private val userViewModel: UserViewModel by viewModels()
+    private val hotelViewModel: HotelViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
         val lang = LocaleHelper.getSavedLanguage(newBase)
@@ -246,6 +249,17 @@ class MainActivity : ComponentActivity() {
                                 selectedTrip = trip
                                 navigateTo("tripOptions")
                             },
+                            onNavigateToNewTrip = { navigateTo("newTrip") },
+                            onNavigateToHotelSearch = { navigateTo("hotelSearch") }
+                        )
+                        "hotelSearch" -> HotelSearchScreen(
+                            hotelViewModel = hotelViewModel,
+                            onNavigateBack = { goBack() },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
                             onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                         "newTrip" -> NewTripScreen(
@@ -403,7 +417,8 @@ class MainActivity : ComponentActivity() {
                                 selectedTrip = trip
                                 navigateTo("tripOptions")
                             },
-                            onNavigateToNewTrip = { navigateTo("newTrip") }
+                            onNavigateToNewTrip = { navigateTo("newTrip") },
+                            onNavigateToHotelSearch = { navigateTo("hotelSearch") }
                         )
                     }
                 }

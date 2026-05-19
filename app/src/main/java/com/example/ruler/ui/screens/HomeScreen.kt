@@ -34,7 +34,8 @@ fun HomeScreen(
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
     onNavigateToTripOptions: (Trip) -> Unit = {},
-    onNavigateToNewTrip: () -> Unit = {}
+    onNavigateToNewTrip: () -> Unit = {},
+    onNavigateToHotelSearch: () -> Unit = {}
 ) {
     val trips by viewModel.trips.collectAsState()
     val hasTrips = trips.isNotEmpty()
@@ -122,23 +123,28 @@ fun HomeScreen(
             }
         }
     ) { paddingValues ->
-        if (!hasTrips) {
-            EmptyTripsState(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(20.dp),
-                onCreateTrip = onNavigateToNewTrip
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(vertical = 20.dp)
-            ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 20.dp)
+        ) {
+            item {
+                HotelSearchBanner(onClick = onNavigateToHotelSearch)
+            }
+
+            if (!hasTrips) {
+                item {
+                    EmptyTripsState(
+                        modifier = Modifier
+                            .fillParentMaxHeight(0.75f)
+                            .padding(vertical = 4.dp),
+                        onCreateTrip = onNavigateToNewTrip
+                    )
+                }
+            } else {
                 item {
                     Text(
                         text = stringResource(R.string.next_trip),
@@ -387,6 +393,53 @@ fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = 
                 Icon(Icons.Default.MoreVert, contentDescription = "Options",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        }
+    }
+}
+
+@Composable
+private fun HotelSearchBanner(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.size(28.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.find_hotels),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.london_paris_barcelona),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
+                )
+            }
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         }
     }
 }

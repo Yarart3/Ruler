@@ -158,5 +158,16 @@
     <string name="reset_email_sent_title">Email enviat!</string>
     <string name="reset_email_sent_subtitle">Comprova la teva safata d\'entrada i segueix les instruccions</string>
     <string name="back_to_login">Tornar a iniciar sessió</string>
-
+    <string name="hotel_search">Cerca d\'hotels</string>
+    <string name="hotel_search_title">Cerca hotels</string>
+    <string name="find_hotels">Cercar hotels</string>
+    <string name="city">Ciutat</string>
+    <string name="select_city">Selecciona una ciutat</string>
+    <string name="search_hotels">Cercar hotels</string>
+    <string name="available_hotels">Hotels disponibles</string>
+    <string name="no_hotels_found">No hi ha hotels disponibles per a les dates seleccionades.</string>
+    <string name="rooms_count">%d habitacions</string>
+    <string name="price_per_night">€%.0f/nit</string>
+    <string name="price_range_per_night">€%.0f – €%.0f/nit</string>
+    <string name="london_paris_barcelona">Londres · París · Barcelona</string>
 </resources>

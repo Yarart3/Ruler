@@ -158,4 +158,16 @@
     <string name="reset_email_sent_title">Email sent!</string>
     <string name="reset_email_sent_subtitle">Check your inbox and follow the instructions</string>
     <string name="back_to_login">Back to sign in</string>
+    <string name="hotel_search">Hotel Search</string>
+    <string name="hotel_search_title">Search for hotels</string>
+    <string name="find_hotels">Find Hotels</string>
+    <string name="city">City</string>
+    <string name="select_city">Select a city</string>
+    <string name="search_hotels">Search Hotels</string>
+    <string name="available_hotels">Available Hotels</string>
+    <string name="no_hotels_found">No hotels available for the selected dates.</string>
+    <string name="rooms_count">%d rooms</string>
+    <string name="price_per_night">€%.0f/night</string>
+    <string name="price_range_per_night">€%.0f – €%.0f/night</string>
+    <string name="london_paris_barcelona">London · Paris · Barcelona</string>
 </resources>
