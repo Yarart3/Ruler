@@ -49,14 +49,17 @@ fun TripEntity.toDomain(): Trip {
                 nights = hotelReservationNights ?: 0
             )
         },
-        localHotel = localHotelId?.let {
-            LocalHotelAssignment(
-                hotelId = it,
-                hotelName = localHotelName.orEmpty(),
-                hotelAddress = localHotelAddress.orEmpty(),
-                checkInDate = localHotelCheckInEpochMillis?.toLocalDate()?.format(tripDateFormatter).orEmpty(),
-                checkOutDate = localHotelCheckOutEpochMillis?.toLocalDate()?.format(tripDateFormatter).orEmpty()
-            )
+        localHotels = decodeLocalHotelList(localHotelsJson).ifEmpty {
+            // Migration: promote legacy single-hotel columns to the new list
+            localHotelId?.let {
+                listOf(LocalHotelAssignment(
+                    hotelId = it,
+                    hotelName = localHotelName.orEmpty(),
+                    hotelAddress = localHotelAddress.orEmpty(),
+                    checkInDate = localHotelCheckInEpochMillis?.toLocalDate()?.format(tripDateFormatter).orEmpty(),
+                    checkOutDate = localHotelCheckOutEpochMillis?.toLocalDate()?.format(tripDateFormatter).orEmpty()
+                ))
+            } ?: emptyList()
         }
     )
 }
@@ -86,11 +89,12 @@ fun Trip.toEntity(ownerUserId: String): TripEntity {
         hotelGuestName = hotelReservation?.guestName,
         hotelGuestEmail = hotelReservation?.guestEmail,
         hotelReservationNights = hotelReservation?.nights,
-        localHotelId = localHotel?.hotelId,
-        localHotelName = localHotel?.hotelName,
-        localHotelAddress = localHotel?.hotelAddress,
-        localHotelCheckInEpochMillis = localHotel?.checkInDate?.let { if (it.isNotBlank()) parseDate(it) else null },
-        localHotelCheckOutEpochMillis = localHotel?.checkOutDate?.let { if (it.isNotBlank()) parseDate(it) else null }
+        localHotelsJson = encodeLocalHotelList(localHotels),
+        localHotelId = localHotels.firstOrNull()?.hotelId,
+        localHotelName = localHotels.firstOrNull()?.hotelName,
+        localHotelAddress = localHotels.firstOrNull()?.hotelAddress,
+        localHotelCheckInEpochMillis = localHotels.firstOrNull()?.checkInDate?.let { if (it.isNotBlank()) parseDate(it) else null },
+        localHotelCheckOutEpochMillis = localHotels.firstOrNull()?.checkOutDate?.let { if (it.isNotBlank()) parseDate(it) else null }
     )
 }
 
@@ -186,3 +190,11 @@ private fun decodeStringList(value: String?): List<String> {
 
 private val gson = Gson()
 private val stringListType = object : TypeToken<List<String>>() {}.type
+private val localHotelListType = object : TypeToken<List<LocalHotelAssignment>>() {}.type
+
+private fun encodeLocalHotelList(hotels: List<LocalHotelAssignment>): String =
+    gson.toJson(hotels)
+
+private fun decodeLocalHotelList(json: String): List<LocalHotelAssignment> =
+    if (json.isBlank() || json == "[]") emptyList()
+    else runCatching { gson.fromJson<List<LocalHotelAssignment>>(json, localHotelListType) }.getOrDefault(emptyList())

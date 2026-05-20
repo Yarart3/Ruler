@@ -32,7 +32,9 @@ object DatabaseModule {
             RulerDatabase.MIGRATION_1_2,
             RulerDatabase.MIGRATION_2_3,
             RulerDatabase.MIGRATION_3_4,
-            RulerDatabase.MIGRATION_4_5
+            RulerDatabase.MIGRATION_4_5,
+            RulerDatabase.MIGRATION_5_6,
+            RulerDatabase.MIGRATION_6_7
         ).build()
     }
 

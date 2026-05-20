@@ -213,7 +213,8 @@ class HotelViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(
             errorMessage = null,
             successMessage = null,
-            createdTripId = null
+            createdTripId = null,
+            lastReservation = null
         )
     }
 }

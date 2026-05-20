@@ -10,7 +10,7 @@ data class Trip(
     val budget: String,
     val emoji: String,
     val hotelReservation: HotelReservationDetails? = null,
-    val localHotel: LocalHotelAssignment? = null
+    val localHotels: List<LocalHotelAssignment> = emptyList()
 )
 
 data class LocalHotelAssignment(

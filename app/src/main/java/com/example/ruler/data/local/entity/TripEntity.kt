@@ -68,5 +68,7 @@ data class TripEntity(
     @ColumnInfo(name = "local_hotel_check_in_epoch_millis")
     val localHotelCheckInEpochMillis: Long? = null,
     @ColumnInfo(name = "local_hotel_check_out_epoch_millis")
-    val localHotelCheckOutEpochMillis: Long? = null
+    val localHotelCheckOutEpochMillis: Long? = null,
+    @ColumnInfo(name = "local_hotels_json")
+    val localHotelsJson: String = "[]"
 )

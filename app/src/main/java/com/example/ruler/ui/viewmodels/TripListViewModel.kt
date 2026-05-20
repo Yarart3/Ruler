@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ruler.domain.LocalHotelAssignment
+import com.example.ruler.domain.LocalHotelRepository
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.domain.TripRepository
@@ -26,7 +27,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 @OptIn(ExperimentalCoroutinesApi::class)
 class TripListViewModel @Inject constructor(
-    private val repository: TripRepository
+    private val repository: TripRepository,
+    private val localHotelRepository: LocalHotelRepository
 ) : ViewModel() {
 
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
@@ -221,6 +223,13 @@ class TripListViewModel @Inject constructor(
         checkOut: String
     ) {
         viewModelScope.launch {
+            // Check hotel not already assigned to a different trip
+            val hotel = localHotelRepository.getHotelById(hotelId)
+            if (hotel?.assignedTripId != null && hotel.assignedTripId != tripId) {
+                _errorMessage.value = "This hotel is already assigned to another trip"
+                return@launch
+            }
+
             val trip = repository.getTripById(tripId) ?: return@launch
             val checkInDate = parseDate(checkIn)
             val checkOutDate = parseDate(checkOut)
@@ -228,36 +237,42 @@ class TripListViewModel @Inject constructor(
             val tripEnd = parseDate(trip.endDate)
 
             if (checkInDate == null || checkOutDate == null || tripStart == null || tripEnd == null) {
-                _errorMessage.value = "Invalid date format"
+                _errorMessage.value = "Invalid dates"
                 return@launch
             }
             if (checkInDate.before(tripStart) || checkOutDate.after(tripEnd)) {
-                _errorMessage.value = "Hotel dates must be within trip range (${trip.startDate} - ${trip.endDate})"
+                _errorMessage.value = "Invalid dates: must be within ${trip.startDate} – ${trip.endDate}"
                 return@launch
             }
             if (!checkInDate.before(checkOutDate)) {
-                _errorMessage.value = "Check-in must be before check-out"
+                _errorMessage.value = "Invalid dates: check-in must be before check-out"
                 return@launch
             }
-            repository.editTrip(
-                trip.copy(
-                    localHotel = LocalHotelAssignment(
-                        hotelId = hotelId,
-                        hotelName = hotelName,
-                        hotelAddress = hotelAddress,
-                        checkInDate = checkIn,
-                        checkOutDate = checkOut
-                    )
-                )
-            )
+
+            val newAssignment = LocalHotelAssignment(hotelId, hotelName, hotelAddress, checkIn, checkOut)
+            val updatedList = trip.localHotels.toMutableList()
+            val idx = updatedList.indexOfFirst { it.hotelId == hotelId }
+            if (idx >= 0) updatedList[idx] = newAssignment else updatedList.add(newAssignment)
+
+            repository.editTrip(trip.copy(localHotels = updatedList))
+
+            // Mark hotel as assigned to this trip
+            if (hotel != null) {
+                localHotelRepository.updateHotel(hotel.copy(assignedTripId = tripId))
+            }
             clearError()
         }
     }
 
-    fun removeHotelFromTrip(tripId: String) {
+    fun removeHotelFromTrip(tripId: String, hotelId: String) {
         viewModelScope.launch {
             val trip = repository.getTripById(tripId) ?: return@launch
-            repository.editTrip(trip.copy(localHotel = null))
+            repository.editTrip(trip.copy(localHotels = trip.localHotels.filter { it.hotelId != hotelId }))
+            // Free the hotel for reassignment
+            val hotel = localHotelRepository.getHotelById(hotelId)
+            if (hotel?.assignedTripId == tripId) {
+                localHotelRepository.updateHotel(hotel.copy(assignedTripId = null))
+            }
         }
     }
 

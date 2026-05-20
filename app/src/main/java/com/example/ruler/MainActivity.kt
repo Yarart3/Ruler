@@ -47,6 +47,17 @@ import com.example.ruler.ui.viewmodels.TripListViewModel
 import com.example.ruler.ui.viewmodels.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
+private fun apiToDisplayDate(dateStr: String): String = runCatching {
+    java.time.LocalDate.parse(dateStr, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+        .format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+}.getOrElse { dateStr }
+
+private fun calcNights(startDate: String, endDate: String): Int = runCatching {
+    val start = java.time.LocalDate.parse(startDate, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+    val end = java.time.LocalDate.parse(endDate, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+    java.time.temporal.ChronoUnit.DAYS.between(start, end).toInt().coerceAtLeast(0)
+}.getOrElse { 0 }
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
@@ -83,6 +94,7 @@ class MainActivity : ComponentActivity() {
                 var selectedHotelRoom by remember { mutableStateOf<HotelRoom?>(null) }
                 var selectedHotelStartDate by remember { mutableStateOf("") }
                 var selectedHotelEndDate by remember { mutableStateOf("") }
+                var hotelSearchSourceTripId by remember { mutableStateOf<String?>(null) }
 
                 fun resetNavigation(screen: String) {
                     backStack.clear()
@@ -261,11 +273,15 @@ class MainActivity : ComponentActivity() {
                                 selectedTrip = trip
                                 navigateTo("tripOptions")
                             },
-                            onNavigateToNewTrip = { navigateTo("newTrip") },
-                            onNavigateToHotelSearch = { navigateTo("hotelSearch") }
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                         "hotels" -> HotelsScreen(
                             viewModel = localHotelViewModel,
+                            trips = trips,
+                            onBrowseHotels = { navigateTo("hotelSearch") },
+                            onAssignHotelToTrip = { hotelId, hotelName, hotelAddress, tripId, checkIn, checkOut ->
+                                viewModel.assignHotelToTrip(tripId, hotelId, hotelName, hotelAddress, checkIn, checkOut)
+                            },
                             onNavigateToHome = { resetNavigation("home") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToProfile = { navigateTo("profile") },
@@ -303,12 +319,30 @@ class MainActivity : ComponentActivity() {
                                     defaultGuestName = userProfile?.username.orEmpty(),
                                     defaultGuestEmail = userProfile?.email.orEmpty(),
                                     onNavigateBack = { goBack("hotelSearch") },
-                                    onBookingCompleted = { tripId ->
-                                        selectedTripId = tripId
-                                        navigateTo("tripDetail")
+                                    onBookingCompleted = {
+                                        val nights = calcNights(selectedHotelStartDate, selectedHotelEndDate)
+                                        val hotelId = localHotelViewModel.addHotel(hotel.name, hotel.address, nights, room.price)
+                                        val sourceTripId = hotelSearchSourceTripId
+                                        backStack.removeAll { it in setOf("hotelSearch", "hotelBooking") }
+                                        if (sourceTripId != null) {
+                                            viewModel.assignHotelToTrip(
+                                                sourceTripId, hotelId, hotel.name, hotel.address,
+                                                apiToDisplayDate(selectedHotelStartDate),
+                                                apiToDisplayDate(selectedHotelEndDate)
+                                            )
+                                            selectedTripId = sourceTripId
+                                            hotelSearchSourceTripId = null
+                                            currentScreen = "tripDetail"
+                                        } else {
+                                            currentScreen = "hotels"
+                                        }
                                     },
                                     onNavigateToHome = { resetNavigation("home") },
-                                    onNavigateToHotels = { navigateTo("hotels") },
+                                    onNavigateToHotels = {
+                                        hotelSearchSourceTripId = null
+                                        backStack.removeAll { it in setOf("hotelSearch", "hotelBooking") }
+                                        navigateTo("hotels")
+                                    },
                                     onNavigateToGallery = { navigateTo("gallery") },
                                     onNavigateToProfile = { navigateTo("profile") },
                                     onNavigateToPreferences = { navigateTo("preferences") },
@@ -378,6 +412,10 @@ class MainActivity : ComponentActivity() {
                             onNavigateToEditActivity = { activity ->
                                 activityToEdit = activity
                                 navigateTo("editActivity")
+                            },
+                            onBrowseHotelsForTrip = {
+                                hotelSearchSourceTripId = selectedTripId
+                                navigateTo("hotelSearch")
                             }
                         )
                         "addActivity" -> AddActivityScreen(
@@ -481,8 +519,7 @@ class MainActivity : ComponentActivity() {
                                 selectedTrip = trip
                                 navigateTo("tripOptions")
                             },
-                            onNavigateToNewTrip = { navigateTo("newTrip") },
-                            onNavigateToHotelSearch = { navigateTo("hotelSearch") }
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                     }
                 }

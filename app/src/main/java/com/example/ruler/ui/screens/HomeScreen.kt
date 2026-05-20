@@ -35,8 +35,7 @@ fun HomeScreen(
     onNavigateToAbout: () -> Unit = {},
     onNavigateToHotels: () -> Unit = {},
     onNavigateToTripOptions: (Trip) -> Unit = {},
-    onNavigateToNewTrip: () -> Unit = {},
-    onNavigateToHotelSearch: () -> Unit = {}
+    onNavigateToNewTrip: () -> Unit = {}
 ) {
     val trips by viewModel.trips.collectAsState()
     val hasTrips = trips.isNotEmpty()
@@ -127,10 +126,6 @@ fun HomeScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(vertical = 20.dp)
         ) {
-            item {
-                HotelSearchBanner(onClick = onNavigateToHotelSearch)
-            }
-
             if (!hasTrips) {
                 item {
                     EmptyTripsState(

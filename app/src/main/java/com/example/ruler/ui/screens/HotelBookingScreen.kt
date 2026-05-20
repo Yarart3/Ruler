@@ -78,7 +78,7 @@ fun HotelBookingScreen(
     defaultGuestName: String,
     defaultGuestEmail: String,
     onNavigateBack: () -> Unit,
-    onBookingCompleted: (String) -> Unit,
+    onBookingCompleted: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
@@ -93,9 +93,9 @@ fun HotelBookingScreen(
     var guestNameError by remember { mutableStateOf(false) }
     var guestEmailError by remember { mutableStateOf(false) }
 
-    LaunchedEffect(uiState.createdTripId) {
-        uiState.createdTripId?.let { tripId ->
-            onBookingCompleted(tripId)
+    LaunchedEffect(uiState.lastReservation) {
+        if (uiState.lastReservation != null) {
+            onBookingCompleted()
             hotelViewModel.clearMessages()
         }
     }
@@ -243,9 +243,7 @@ fun HotelBookingScreen(
                         guestNameError = guestName.isBlank()
                         guestEmailError = guestEmail.isBlank()
                         if (guestNameError || guestEmailError) return@Button
-                        hotelViewModel.reserveRoomAndCreateTrip(
-                            hotel = hotel,
-                            room = room,
+                        hotelViewModel.reserveRoom(
                             request = HotelReservationRequest(
                                 hotelId = hotel.id,
                                 roomId = room.id,

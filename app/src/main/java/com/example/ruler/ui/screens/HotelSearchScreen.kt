@@ -114,8 +114,8 @@ fun HotelSearchScreen(
                         label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
-                        selected = false,
-                        onClick = onNavigateToHotels,
+                        selected = true,
+                        onClick = { },
                         icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
                         label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )

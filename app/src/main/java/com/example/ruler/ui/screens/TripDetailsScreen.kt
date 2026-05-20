@@ -44,10 +44,12 @@ fun TripDetailScreen(
     onNavigateToActivityDetail: (TripActivity) -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {},
     onNavigateToAddActivity: () -> Unit = {},
-    onNavigateToEditActivity: (TripActivity) -> Unit = {}
+    onNavigateToEditActivity: (TripActivity) -> Unit = {},
+    onBrowseHotelsForTrip: () -> Unit = {}
 ) {
     val trips by viewModel.trips.collectAsState()
     val activities by viewModel.activities.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
     val trip = trips.find { it.id == tripId } ?: trips.firstOrNull() ?: return
     val sortedActivities = remember(activities) {
         activities.sortedWith(compareBy({ parseActivityDateTime(it) }, { it.id }))
@@ -55,6 +57,14 @@ fun TripDetailScreen(
 
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
+    }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(errorMessage) {
+        errorMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
     }
 
     var selectedTab by remember { mutableStateOf(0) }
@@ -67,6 +77,7 @@ fun TripDetailScreen(
     var showAssignHotelDialog by remember { mutableStateOf(false) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(text = trip.title, fontWeight = FontWeight.Bold) },
@@ -265,9 +276,9 @@ fun TripDetailScreen(
                         TripHotelTab(
                             trip = trip,
                             localHotels = localHotels,
-                            onNavigateToHotels = onNavigateToHotels,
+                            onBrowseHotelsForTrip = onBrowseHotelsForTrip,
                             onAssignHotel = { showAssignHotelDialog = true },
-                            onRemoveHotel = { viewModel.removeHotelFromTrip(tripId) }
+                            onRemoveHotel = { hotelId -> viewModel.removeHotelFromTrip(tripId, hotelId) }
                         )
                     }
                 }
@@ -278,10 +289,14 @@ fun TripDetailScreen(
     }
 
     if (showAssignHotelDialog) {
+        // Only offer hotels not yet assigned to another trip, and not already in this trip
+        val assignedInThisTrip = trip.localHotels.map { it.hotelId }.toSet()
+        val availableHotels = localHotels.filter { h ->
+            (h.assignedTripId == null || h.assignedTripId == tripId) && h.id !in assignedInThisTrip
+        }
         AssignHotelDialog(
             trip = trip,
-            localHotels = localHotels,
-            existingAssignment = trip.localHotel,
+            localHotels = availableHotels,
             onConfirm = { hotelId, hotelName, hotelAddress, checkIn, checkOut ->
                 viewModel.assignHotelToTrip(tripId, hotelId, hotelName, hotelAddress, checkIn, checkOut)
                 showAssignHotelDialog = false
@@ -514,35 +529,28 @@ fun StatCard(modifier: Modifier, label: String, value: String, icon: String) {
 private fun TripHotelTab(
     trip: Trip,
     localHotels: List<LocalHotel>,
-    onNavigateToHotels: () -> Unit,
+    onBrowseHotelsForTrip: () -> Unit,
     onAssignHotel: () -> Unit,
-    onRemoveHotel: () -> Unit
+    onRemoveHotel: (String) -> Unit
 ) {
+    val hasAvailableHotels = localHotels.any { h ->
+        (h.assignedTripId == null || h.assignedTripId == trip.id) &&
+                trip.localHotels.none { a -> a.hotelId == h.id }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.hotel_tab),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            TextButton(onClick = onNavigateToHotels) {
-                Icon(Icons.Default.Hotel, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(stringResource(R.string.browse_hotels))
-            }
-        }
+        Text(
+            text = stringResource(R.string.hotel_tab),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
 
-        val localHotel = trip.localHotel
-        if (localHotel == null) {
+        if (trip.localHotels.isEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -563,101 +571,134 @@ private fun TripHotelTab(
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Button(
+                    if (hasAvailableHotels) {
+                        Button(onClick = onAssignHotel, shape = RoundedCornerShape(12.dp)) {
+                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.assign_hotel))
+                        }
+                    }
+                    OutlinedButton(onClick = onBrowseHotelsForTrip, shape = RoundedCornerShape(12.dp)) {
+                        Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(stringResource(R.string.browse_hotels))
+                    }
+                }
+            }
+        } else {
+            trip.localHotels.forEach { assignment ->
+                TripHotelCard(
+                    assignment = assignment,
+                    onRemove = { onRemoveHotel(assignment.hotelId) }
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (hasAvailableHotels) {
+                    OutlinedButton(
                         onClick = onAssignHotel,
-                        enabled = localHotels.isNotEmpty(),
+                        modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(stringResource(R.string.assign_hotel))
                     }
-                    if (localHotels.isEmpty()) {
-                        Text(
-                            text = stringResource(R.string.no_hotels),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                }
+                OutlinedButton(
+                    onClick = onBrowseHotelsForTrip,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(stringResource(R.string.browse_hotels))
                 }
             }
-        } else {
-            Card(
+        }
+    }
+}
+
+@Composable
+private fun TripHotelCard(
+    assignment: com.example.ruler.domain.LocalHotelAssignment,
+    onRemove: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(
-                                Icons.Default.Hotel,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Text(
-                                text = localHotel.hotelName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                        Row {
-                            IconButton(onClick = onAssignHotel, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp))
-                            }
-                            IconButton(onClick = onRemoveHotel, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Delete, contentDescription = "Remove", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(18.dp))
-                            }
-                        }
-                    }
-                    if (localHotel.hotelAddress.isNotBlank()) {
-                        Text(
-                            text = localHotel.hotelAddress,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                        )
-                    }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.check_in_date),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                            )
-                            Text(
-                                text = localHotel.checkInDate,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.check_out_date),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                            )
-                            Text(
-                                text = localHotel.checkOutDate,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Default.Hotel,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Text(
+                        text = assignment.hotelName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Remove",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            if (assignment.hotelAddress.isNotBlank()) {
+                Text(
+                    text = assignment.hotelAddress,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.2f))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.check_in_date),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = assignment.checkInDate,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.check_out_date),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                    )
+                    Text(
+                        text = assignment.checkOutDate,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
         }
@@ -669,25 +710,45 @@ private fun TripHotelTab(
 private fun AssignHotelDialog(
     trip: Trip,
     localHotels: List<LocalHotel>,
-    existingAssignment: com.example.ruler.domain.LocalHotelAssignment?,
     onConfirm: (String, String, String, String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val cal = Calendar.getInstance()
 
-    var selectedHotelId by remember { mutableStateOf(existingAssignment?.hotelId ?: localHotels.firstOrNull()?.id ?: "") }
-    var checkIn by remember { mutableStateOf(existingAssignment?.checkInDate ?: "") }
-    var checkOut by remember { mutableStateOf(existingAssignment?.checkOutDate ?: "") }
+    var selectedHotelId by remember { mutableStateOf(localHotels.firstOrNull()?.id ?: "") }
+    var checkIn by remember { mutableStateOf("") }
+    var checkOut by remember { mutableStateOf("") }
     var hotelDropdownExpanded by remember { mutableStateOf(false) }
-    var checkInError by remember { mutableStateOf(false) }
-    var checkOutError by remember { mutableStateOf(false) }
+    var checkInError by remember { mutableStateOf<String?>(null) }
+    var checkOutError by remember { mutableStateOf<String?>(null) }
+
+    val fmt = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false } }
+
+    fun validateRange(dateStr: String, isCheckIn: Boolean): String? {
+        return try {
+            val d = fmt.parse(dateStr) ?: return "Invalid date"
+            val start = fmt.parse(trip.startDate) ?: return null
+            val end = fmt.parse(trip.endDate) ?: return null
+            if (d.before(start) || d.after(end))
+                "Must be within ${trip.startDate} – ${trip.endDate}"
+            else if (isCheckIn && checkOut.isNotBlank()) {
+                val out = fmt.parse(checkOut)
+                if (out != null && !d.before(out)) "Check-in must be before check-out" else null
+            } else if (!isCheckIn && checkIn.isNotBlank()) {
+                val inn = fmt.parse(checkIn)
+                if (inn != null && !inn.before(d)) "Check-out must be after check-in" else null
+            } else null
+        } catch (e: Exception) { null }
+    }
 
     val checkInPickerDialog = DatePickerDialog(
         context,
         { _, year, month, day ->
-            checkIn = "%02d/%02d/%04d".format(day, month + 1, year)
-            checkInError = false
+            val dateStr = "%02d/%02d/%04d".format(day, month + 1, year)
+            checkIn = dateStr
+            checkInError = validateRange(dateStr, isCheckIn = true)
+            if (checkOut.isNotBlank()) checkOutError = validateRange(checkOut, isCheckIn = false)
         },
         cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
     )
@@ -695,13 +756,17 @@ private fun AssignHotelDialog(
     val checkOutPickerDialog = DatePickerDialog(
         context,
         { _, year, month, day ->
-            checkOut = "%02d/%02d/%04d".format(day, month + 1, year)
-            checkOutError = false
+            val dateStr = "%02d/%02d/%04d".format(day, month + 1, year)
+            checkOut = dateStr
+            checkOutError = validateRange(dateStr, isCheckIn = false)
+            if (checkIn.isNotBlank()) checkInError = validateRange(checkIn, isCheckIn = true)
         },
         cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
     )
 
     val selectedHotel = localHotels.find { it.id == selectedHotelId }
+    val canConfirm = checkIn.isNotBlank() && checkOut.isNotBlank() &&
+            checkInError == null && checkOutError == null && selectedHotel != null
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -762,8 +827,13 @@ private fun AssignHotelDialog(
                         Icon(Icons.Default.DateRange, contentDescription = null,
                             modifier = Modifier.clickable { checkInPickerDialog.show() })
                     },
-                    isError = checkInError,
-                    supportingText = { if (checkInError) Text(stringResource(R.string.required_field)) },
+                    isError = checkInError != null,
+                    supportingText = {
+                        when {
+                            checkInError != null -> Text(checkInError!!, color = MaterialTheme.colorScheme.error)
+                            checkIn.isBlank() -> Text(stringResource(R.string.required_field), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
                     readOnly = true,
                     enabled = false,
                     modifier = Modifier
@@ -772,7 +842,7 @@ private fun AssignHotelDialog(
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = if (checkInError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+                        disabledBorderColor = if (checkInError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
                         disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
                         disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -789,8 +859,13 @@ private fun AssignHotelDialog(
                         Icon(Icons.Default.DateRange, contentDescription = null,
                             modifier = Modifier.clickable { checkOutPickerDialog.show() })
                     },
-                    isError = checkOutError,
-                    supportingText = { if (checkOutError) Text(stringResource(R.string.required_field)) },
+                    isError = checkOutError != null,
+                    supportingText = {
+                        when {
+                            checkOutError != null -> Text(checkOutError!!, color = MaterialTheme.colorScheme.error)
+                            checkOut.isBlank() -> Text(stringResource(R.string.required_field), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
                     readOnly = true,
                     enabled = false,
                     modifier = Modifier
@@ -799,7 +874,7 @@ private fun AssignHotelDialog(
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = if (checkOutError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
+                        disabledBorderColor = if (checkOutError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
                         disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
                         disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -811,12 +886,10 @@ private fun AssignHotelDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    var hasError = false
-                    if (checkIn.isBlank()) { checkInError = true; hasError = true }
-                    if (checkOut.isBlank()) { checkOutError = true; hasError = true }
-                    if (hasError || selectedHotel == null) return@Button
-                    onConfirm(selectedHotel.id, selectedHotel.name, selectedHotel.address, checkIn, checkOut)
-                }
+                    if (!canConfirm) return@Button
+                    onConfirm(selectedHotel!!.id, selectedHotel.name, selectedHotel.address, checkIn, checkOut)
+                },
+                enabled = canConfirm
             ) {
                 Text(stringResource(R.string.save_hotel))
             }
