@@ -8,5 +8,21 @@ data class Trip(
     val endDate: String,
     val description: String,
     val budget: String,
-    val emoji: String
+    val emoji: String,
+    val hotelReservation: HotelReservationDetails? = null
+)
+
+data class HotelReservationDetails(
+    val reservationId: String,
+    val hotelId: String,
+    val hotelName: String,
+    val hotelAddress: String,
+    val hotelImageUrl: String,
+    val roomId: String,
+    val roomType: String,
+    val roomPricePerNight: Double,
+    val roomImageUrls: List<String>,
+    val guestName: String,
+    val guestEmail: String,
+    val nights: Int
 )

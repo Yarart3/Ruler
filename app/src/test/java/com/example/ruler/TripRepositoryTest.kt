@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.example.ruler.data.local.RulerDatabase
 import com.example.ruler.data.repository.TripRepositoryImpl
+import com.example.ruler.domain.HotelReservationDetails
 import com.example.ruler.domain.Trip
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -89,6 +90,37 @@ class TripRepositoryTest {
 
         assertNotNull(result)
         assertEquals("Barcelona", result?.title)
+    }
+
+    @Test
+    fun addTrip_persistsHotelReservationDetails() = runBlocking {
+        val trip = createTrip(id = "trip-hotel").copy(
+            hotelReservation = HotelReservationDetails(
+                reservationId = "reservation-1",
+                hotelId = "PAR01",
+                hotelName = "Hotel Louvre",
+                hotelAddress = "Rue de Rivoli 99, Paris",
+                hotelImageUrl = "http://15.224.84.148:8090/images/PAR01.png",
+                roomId = "R2",
+                roomType = "double",
+                roomPricePerNight = 120.0,
+                roomImageUrls = listOf(
+                    "http://15.224.84.148:8090/images/PAR01R2.png"
+                ),
+                guestName = "Ada Lovelace",
+                guestEmail = "ada@example.com",
+                nights = 4
+            )
+        )
+
+        repository.addTrip(trip)
+
+        val storedTrip = repository.getTripById("trip-hotel")
+        assertNotNull(storedTrip?.hotelReservation)
+        assertEquals("reservation-1", storedTrip?.hotelReservation?.reservationId)
+        assertEquals("Hotel Louvre", storedTrip?.hotelReservation?.hotelName)
+        assertEquals(120.0, storedTrip?.hotelReservation?.roomPricePerNight ?: 0.0, 0.0)
+        assertEquals(1, storedTrip?.hotelReservation?.roomImageUrls?.size)
     }
 
     @Test

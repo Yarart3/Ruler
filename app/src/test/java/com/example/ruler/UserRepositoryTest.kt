@@ -4,9 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.example.ruler.data.local.RulerDatabase
+import com.example.ruler.data.local.entity.UserEntity
 import com.example.ruler.data.repository.UserRepositoryImpl
-import com.example.ruler.data.repository.toEntity
 import com.example.ruler.domain.UserProfile
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -59,16 +61,16 @@ class UserRepositoryTest {
     @Test
     fun saveCurrentUserProfile_rejectsDuplicatedUsername() = runBlocking {
         database.userDao().insertUser(
-            UserProfile(
+            UserEntity(
                 id = "user-2",
                 email = "user2@example.com",
                 username = "duplicate",
-                birthDate = "01/01/2000",
+                birthDate = userBirthDateFormatter.parse("01/01/2000"),
                 address = "Street 2",
                 country = "Spain",
                 phone = "999999999",
                 acceptsMarketingEmails = false
-            ).toEntity()
+            )
         )
 
         val result = runCatching {
@@ -139,4 +141,8 @@ class UserRepositoryTest {
         assertEquals("123456789", user?.phone)
         assertEquals(true, user?.acceptsMarketingEmails)
     }
+}
+
+private val userBirthDateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
+    isLenient = false
 }

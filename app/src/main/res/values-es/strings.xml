@@ -162,7 +162,18 @@
     <string name="no_hotels_found">No hay hoteles disponibles para las fechas seleccionadas.</string>
     <string name="rooms_count">%d habitaciones</string>
     <string name="price_per_night">€%.0f/noche</string>
-    <string name="price_range_per_night">€%.0f – €%.0f/noche</string>
+    <string name="price_range_per_night">€%1$.0f - €%2$.0f/noche</string>
     <string name="london_paris_barcelona">Londres · París · Barcelona</string>
     <string name="available_rooms">Habitaciones disponibles</string>
+    <string name="book_room">Reservar</string>
+    <string name="hotel_booking_title">Completar reserva</string>
+    <string name="confirm_hotel_booking">Confirmar reserva</string>
+    <string name="booking_guest_details">Datos del huésped</string>
+    <string name="hotel_images">Imágenes del hotel</string>
+    <string name="room_images">Imágenes de la habitación</string>
+    <string name="reservation_saved_trip">Reserva guardada en este viaje</string>
+    <string name="reservation_id">ID de reserva: %1$s</string>
+    <string name="reservation_guest">Huésped: %1$s</string>
+    <string name="reservation_room">Habitación: %1$s</string>
+    <string name="reservation_nights">Noches: %1$d</string>
 </resources>

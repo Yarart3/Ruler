@@ -16,7 +16,7 @@ import com.example.ruler.data.local.entity.UserEntity
 
 @Database(
     entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @TypeConverters(DateConverters::class)
@@ -80,6 +80,23 @@ abstract class RulerDatabase : RoomDatabase() {
                     ON `access_logs` (`occurred_at_epoch_millis`)
                     """.trimIndent()
                 )
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_reservation_id` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_id` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_name` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_address` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_image_url` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_room_id` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_room_type` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_room_price_per_night` REAL")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_room_image_urls` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_guest_name` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_guest_email` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_reservation_nights` INTEGER")
             }
         }
     }

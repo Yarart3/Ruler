@@ -2,8 +2,11 @@ package com.example.ruler.data.repository
 
 import com.example.ruler.data.local.entity.ItineraryItemEntity
 import com.example.ruler.data.local.entity.TripEntity
+import com.example.ruler.domain.HotelReservationDetails
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.text.NumberFormat
 import java.time.Instant
 import java.time.LocalDate
@@ -28,7 +31,23 @@ fun TripEntity.toDomain(): Trip {
         endDate = endDateEpochMillis.toLocalDate().format(tripDateFormatter),
         description = description,
         budget = formatBudget(budgetAmount, budgetCurrency),
-        emoji = emoji
+        emoji = emoji,
+        hotelReservation = hotelReservationId?.let {
+            HotelReservationDetails(
+                reservationId = it,
+                hotelId = hotelId.orEmpty(),
+                hotelName = hotelName.orEmpty(),
+                hotelAddress = hotelAddress.orEmpty(),
+                hotelImageUrl = hotelImageUrl.orEmpty(),
+                roomId = hotelRoomId.orEmpty(),
+                roomType = hotelRoomType.orEmpty(),
+                roomPricePerNight = hotelRoomPricePerNight ?: 0.0,
+                roomImageUrls = decodeStringList(hotelRoomImageUrls),
+                guestName = hotelGuestName.orEmpty(),
+                guestEmail = hotelGuestEmail.orEmpty(),
+                nights = hotelReservationNights ?: 0
+            )
+        }
     )
 }
 
@@ -44,7 +63,19 @@ fun Trip.toEntity(ownerUserId: String): TripEntity {
         description = description,
         budgetAmount = parsedBudget.amount,
         budgetCurrency = parsedBudget.currency,
-        emoji = emoji
+        emoji = emoji,
+        hotelReservationId = hotelReservation?.reservationId,
+        hotelId = hotelReservation?.hotelId,
+        hotelName = hotelReservation?.hotelName,
+        hotelAddress = hotelReservation?.hotelAddress,
+        hotelImageUrl = hotelReservation?.hotelImageUrl,
+        hotelRoomId = hotelReservation?.roomId,
+        hotelRoomType = hotelReservation?.roomType,
+        hotelRoomPricePerNight = hotelReservation?.roomPricePerNight,
+        hotelRoomImageUrls = hotelReservation?.roomImageUrls?.let(::encodeStringList),
+        hotelGuestName = hotelReservation?.guestName,
+        hotelGuestEmail = hotelReservation?.guestEmail,
+        hotelReservationNights = hotelReservation?.nights
     )
 }
 
@@ -126,3 +157,17 @@ private data class ParsedBudget(
     val amount: Int,
     val currency: String
 )
+
+private fun encodeStringList(values: List<String>): String {
+    return gson.toJson(values)
+}
+
+private fun decodeStringList(value: String?): List<String> {
+    if (value.isNullOrBlank()) return emptyList()
+    return runCatching {
+        gson.fromJson<List<String>>(value, stringListType)
+    }.getOrDefault(emptyList())
+}
+
+private val gson = Gson()
+private val stringListType = object : TypeToken<List<String>>() {}.type

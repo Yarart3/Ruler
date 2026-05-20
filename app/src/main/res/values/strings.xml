@@ -168,7 +168,18 @@
     <string name="no_hotels_found">No hotels available for the selected dates.</string>
     <string name="rooms_count">%d rooms</string>
     <string name="price_per_night">€%.0f/night</string>
-    <string name="price_range_per_night">€%.0f – €%.0f/night</string>
+    <string name="price_range_per_night">€%1$.0f - €%2$.0f/night</string>
     <string name="london_paris_barcelona">London · Paris · Barcelona</string>
     <string name="available_rooms">Available Rooms</string>
+    <string name="book_room">Book</string>
+    <string name="hotel_booking_title">Complete reservation</string>
+    <string name="confirm_hotel_booking">Confirm booking</string>
+    <string name="booking_guest_details">Guest details</string>
+    <string name="hotel_images">Hotel images</string>
+    <string name="room_images">Room images</string>
+    <string name="reservation_saved_trip">Reservation saved in this trip</string>
+    <string name="reservation_id">Reservation ID: %1$s</string>
+    <string name="reservation_guest">Guest: %1$s</string>
+    <string name="reservation_room">Room: %1$s</string>
+    <string name="reservation_nights">Nights: %1$d</string>
 </resources>

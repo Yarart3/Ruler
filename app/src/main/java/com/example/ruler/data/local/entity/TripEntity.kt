@@ -34,5 +34,29 @@ data class TripEntity(
     @ColumnInfo(name = "budget_currency")
     val budgetCurrency: String,
     @ColumnInfo(name = "cover_emoji")
-    val emoji: String
+    val emoji: String,
+    @ColumnInfo(name = "hotel_reservation_id")
+    val hotelReservationId: String? = null,
+    @ColumnInfo(name = "hotel_id")
+    val hotelId: String? = null,
+    @ColumnInfo(name = "hotel_name")
+    val hotelName: String? = null,
+    @ColumnInfo(name = "hotel_address")
+    val hotelAddress: String? = null,
+    @ColumnInfo(name = "hotel_image_url")
+    val hotelImageUrl: String? = null,
+    @ColumnInfo(name = "hotel_room_id")
+    val hotelRoomId: String? = null,
+    @ColumnInfo(name = "hotel_room_type")
+    val hotelRoomType: String? = null,
+    @ColumnInfo(name = "hotel_room_price_per_night")
+    val hotelRoomPricePerNight: Double? = null,
+    @ColumnInfo(name = "hotel_room_image_urls")
+    val hotelRoomImageUrls: String? = null,
+    @ColumnInfo(name = "hotel_guest_name")
+    val hotelGuestName: String? = null,
+    @ColumnInfo(name = "hotel_guest_email")
+    val hotelGuestEmail: String? = null,
+    @ColumnInfo(name = "hotel_reservation_nights")
+    val hotelReservationNights: Int? = null
 )

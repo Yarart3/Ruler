@@ -27,6 +27,7 @@ import java.util.Calendar
 @Composable
 fun HotelSearchScreen(
     hotelViewModel: HotelViewModel,
+    onRoomSelected: (Hotel, HotelRoom, String, String) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
@@ -249,7 +250,12 @@ fun HotelSearchScreen(
                     )
                 }
                 items(uiState.hotels) { hotel ->
-                    HotelResultCard(hotel = hotel)
+                    HotelResultCard(
+                        hotel = hotel,
+                        onRoomSelected = { room ->
+                            onRoomSelected(hotel, room, startDateApi, endDateApi)
+                        }
+                    )
                 }
             }
 
@@ -423,7 +429,10 @@ private fun SearchFormCard(
 }
 
 @Composable
-private fun HotelResultCard(hotel: Hotel) {
+private fun HotelResultCard(
+    hotel: Hotel,
+    onRoomSelected: (HotelRoom) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -479,14 +488,20 @@ private fun HotelResultCard(hotel: Hotel) {
             )
 
             hotel.rooms.forEach { room ->
-                RoomRow(room = room)
+                RoomRow(
+                    room = room,
+                    onBookClick = { onRoomSelected(room) }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun RoomRow(room: HotelRoom) {
+private fun RoomRow(
+    room: HotelRoom,
+    onBookClick: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -514,5 +529,9 @@ private fun RoomRow(room: HotelRoom) {
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
         )
+        Spacer(modifier = Modifier.width(12.dp))
+        OutlinedButton(onClick = onBookClick) {
+            Text(stringResource(R.string.book_room))
+        }
     }
 }

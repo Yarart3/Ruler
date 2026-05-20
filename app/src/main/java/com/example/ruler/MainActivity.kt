@@ -13,6 +13,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
+import com.example.ruler.domain.Hotel
+import com.example.ruler.domain.HotelRoom
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.domain.hasRequiredLocalData
@@ -23,6 +25,7 @@ import com.example.ruler.ui.screens.EditActivityScreen
 import com.example.ruler.ui.screens.EditTripScreen
 import com.example.ruler.ui.screens.ForgotPasswordScreen
 import com.example.ruler.ui.screens.GalleryScreen
+import com.example.ruler.ui.screens.HotelBookingScreen
 import com.example.ruler.ui.screens.HomeScreen
 import com.example.ruler.ui.screens.HotelSearchScreen
 import com.example.ruler.ui.screens.LoginScreen
@@ -72,6 +75,10 @@ class MainActivity : ComponentActivity() {
                 var selectedActivity by remember { mutableStateOf<TripActivity?>(null) }
                 var selectedTrip by remember { mutableStateOf<Trip?>(null) }
                 var activityToEdit by remember { mutableStateOf<TripActivity?>(null) }
+                var selectedHotel by remember { mutableStateOf<Hotel?>(null) }
+                var selectedHotelRoom by remember { mutableStateOf<HotelRoom?>(null) }
+                var selectedHotelStartDate by remember { mutableStateOf("") }
+                var selectedHotelEndDate by remember { mutableStateOf("") }
 
                 fun resetNavigation(screen: String) {
                     backStack.clear()
@@ -254,6 +261,13 @@ class MainActivity : ComponentActivity() {
                         )
                         "hotelSearch" -> HotelSearchScreen(
                             hotelViewModel = hotelViewModel,
+                            onRoomSelected = { hotel, room, startDate, endDate ->
+                                selectedHotel = hotel
+                                selectedHotelRoom = room
+                                selectedHotelStartDate = startDate
+                                selectedHotelEndDate = endDate
+                                navigateTo("hotelBooking")
+                            },
                             onNavigateBack = { goBack() },
                             onNavigateToHome = { resetNavigation("home") },
                             onNavigateToGallery = { navigateTo("gallery") },
@@ -262,6 +276,34 @@ class MainActivity : ComponentActivity() {
                             onNavigateToAbout = { navigateTo("about") },
                             onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
+                        "hotelBooking" -> {
+                            val hotel = selectedHotel
+                            val room = selectedHotelRoom
+                            if (hotel != null && room != null) {
+                                HotelBookingScreen(
+                                    hotelViewModel = hotelViewModel,
+                                    hotel = hotel,
+                                    room = room,
+                                    startDate = selectedHotelStartDate,
+                                    endDate = selectedHotelEndDate,
+                                    defaultGuestName = userProfile?.username.orEmpty(),
+                                    defaultGuestEmail = userProfile?.email.orEmpty(),
+                                    onNavigateBack = { goBack("hotelSearch") },
+                                    onBookingCompleted = { tripId ->
+                                        selectedTripId = tripId
+                                        navigateTo("tripDetail")
+                                    },
+                                    onNavigateToHome = { resetNavigation("home") },
+                                    onNavigateToGallery = { navigateTo("gallery") },
+                                    onNavigateToProfile = { navigateTo("profile") },
+                                    onNavigateToPreferences = { navigateTo("preferences") },
+                                    onNavigateToAbout = { navigateTo("about") },
+                                    onNavigateToNewTrip = { navigateTo("newTrip") }
+                                )
+                            } else {
+                                LaunchedEffect(Unit) { goBack("hotelSearch") }
+                            }
+                        }
                         "newTrip" -> NewTripScreen(
                             viewModel = viewModel,
                             onNavigateBack = { goBack() },

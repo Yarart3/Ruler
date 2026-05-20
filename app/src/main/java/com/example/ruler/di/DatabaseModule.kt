@@ -29,7 +29,8 @@ object DatabaseModule {
             "ruler_database"
         ).addMigrations(
             RulerDatabase.MIGRATION_1_2,
-            RulerDatabase.MIGRATION_2_3
+            RulerDatabase.MIGRATION_2_3,
+            RulerDatabase.MIGRATION_3_4
         ).build()
     }
 

@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ruler.R
+import com.example.ruler.domain.HotelReservationDetails
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.ui.viewmodels.TripListViewModel
@@ -174,6 +175,12 @@ fun TripDetailScreen(
                 }
             }
 
+            trip.hotelReservation?.let { reservation ->
+                item {
+                    ReservationSummaryCard(reservation = reservation)
+                }
+            }
+
             item {
                 TabRow(
                     selectedTabIndex = selectedTab,
@@ -247,6 +254,52 @@ fun TripDetailScreen(
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun ReservationSummaryCard(reservation: HotelReservationDetails) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.reservation_saved_trip),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = stringResource(R.string.reservation_id, reservation.reservationId),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = reservation.hotelName,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = stringResource(R.string.reservation_room, reservation.roomType),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = stringResource(R.string.reservation_guest, reservation.guestName),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = stringResource(R.string.reservation_nights, reservation.nights),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
 }
