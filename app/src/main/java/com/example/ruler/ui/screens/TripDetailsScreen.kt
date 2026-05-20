@@ -74,8 +74,6 @@ fun TripDetailScreen(
         stringResource(R.string.gallery),
         stringResource(R.string.hotel_tab)
     )
-    var showAssignHotelDialog by remember { mutableStateOf(false) }
-
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -276,9 +274,7 @@ fun TripDetailScreen(
                         TripHotelTab(
                             trip = trip,
                             localHotels = localHotels,
-                            onBrowseHotelsForTrip = onBrowseHotelsForTrip,
-                            onAssignHotel = { showAssignHotelDialog = true },
-                            onRemoveHotel = { hotelId -> viewModel.removeHotelFromTrip(tripId, hotelId) }
+                            onBrowseHotelsForTrip = onBrowseHotelsForTrip
                         )
                     }
                 }
@@ -288,22 +284,6 @@ fun TripDetailScreen(
         }
     }
 
-    if (showAssignHotelDialog) {
-        // Only offer hotels not yet assigned to another trip, and not already in this trip
-        val assignedInThisTrip = trip.localHotels.map { it.hotelId }.toSet()
-        val availableHotels = localHotels.filter { h ->
-            (h.assignedTripId == null || h.assignedTripId == tripId) && h.id !in assignedInThisTrip
-        }
-        AssignHotelDialog(
-            trip = trip,
-            localHotels = availableHotels,
-            onConfirm = { hotelId, hotelName, hotelAddress, checkIn, checkOut ->
-                viewModel.assignHotelToTrip(tripId, hotelId, hotelName, hotelAddress, checkIn, checkOut)
-                showAssignHotelDialog = false
-            },
-            onDismiss = { showAssignHotelDialog = false }
-        )
-    }
 }
 
 @Composable
@@ -529,15 +509,8 @@ fun StatCard(modifier: Modifier, label: String, value: String, icon: String) {
 private fun TripHotelTab(
     trip: Trip,
     localHotels: List<LocalHotel>,
-    onBrowseHotelsForTrip: () -> Unit,
-    onAssignHotel: () -> Unit,
-    onRemoveHotel: (String) -> Unit
+    onBrowseHotelsForTrip: () -> Unit
 ) {
-    val hasAvailableHotels = localHotels.any { h ->
-        (h.assignedTripId == null || h.assignedTripId == trip.id) &&
-                trip.localHotels.none { a -> a.hotelId == h.id }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -571,13 +544,6 @@ private fun TripHotelTab(
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    if (hasAvailableHotels) {
-                        Button(onClick = onAssignHotel, shape = RoundedCornerShape(12.dp)) {
-                            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.assign_hotel))
-                        }
-                    }
                     OutlinedButton(onClick = onBrowseHotelsForTrip, shape = RoundedCornerShape(12.dp)) {
                         Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
@@ -588,28 +554,16 @@ private fun TripHotelTab(
         } else {
             trip.localHotels.forEach { assignment ->
                 TripHotelCard(
-                    assignment = assignment,
-                    onRemove = { onRemoveHotel(assignment.hotelId) }
+                    assignment = assignment
                 )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if (hasAvailableHotels) {
-                    OutlinedButton(
-                        onClick = onAssignHotel,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.assign_hotel))
-                    }
-                }
                 OutlinedButton(
                     onClick = onBrowseHotelsForTrip,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -623,8 +577,7 @@ private fun TripHotelTab(
 
 @Composable
 private fun TripHotelCard(
-    assignment: com.example.ruler.domain.LocalHotelAssignment,
-    onRemove: () -> Unit
+    assignment: com.example.ruler.domain.LocalHotelAssignment
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -654,14 +607,6 @@ private fun TripHotelCard(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-                }
-                IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Remove",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
@@ -703,201 +648,4 @@ private fun TripHotelCard(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AssignHotelDialog(
-    trip: Trip,
-    localHotels: List<LocalHotel>,
-    onConfirm: (String, String, String, String, String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    val cal = Calendar.getInstance()
-
-    var selectedHotelId by remember { mutableStateOf(localHotels.firstOrNull()?.id ?: "") }
-    var checkIn by remember { mutableStateOf("") }
-    var checkOut by remember { mutableStateOf("") }
-    var hotelDropdownExpanded by remember { mutableStateOf(false) }
-    var checkInError by remember { mutableStateOf<String?>(null) }
-    var checkOutError by remember { mutableStateOf<String?>(null) }
-
-    val fmt = remember { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply { isLenient = false } }
-
-    fun validateRange(dateStr: String, isCheckIn: Boolean): String? {
-        return try {
-            val d = fmt.parse(dateStr) ?: return "Invalid date"
-            val start = fmt.parse(trip.startDate) ?: return null
-            val end = fmt.parse(trip.endDate) ?: return null
-            if (d.before(start) || d.after(end))
-                "Must be within ${trip.startDate} – ${trip.endDate}"
-            else if (isCheckIn && checkOut.isNotBlank()) {
-                val out = fmt.parse(checkOut)
-                if (out != null && !d.before(out)) "Check-in must be before check-out" else null
-            } else if (!isCheckIn && checkIn.isNotBlank()) {
-                val inn = fmt.parse(checkIn)
-                if (inn != null && !inn.before(d)) "Check-out must be after check-in" else null
-            } else null
-        } catch (e: Exception) { null }
-    }
-
-    val checkInPickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, day ->
-            val dateStr = "%02d/%02d/%04d".format(day, month + 1, year)
-            checkIn = dateStr
-            checkInError = validateRange(dateStr, isCheckIn = true)
-            if (checkOut.isNotBlank()) checkOutError = validateRange(checkOut, isCheckIn = false)
-        },
-        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
-    )
-
-    val checkOutPickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, day ->
-            val dateStr = "%02d/%02d/%04d".format(day, month + 1, year)
-            checkOut = dateStr
-            checkOutError = validateRange(dateStr, isCheckIn = false)
-            if (checkIn.isNotBlank()) checkInError = validateRange(checkIn, isCheckIn = true)
-        },
-        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
-    )
-
-    val selectedHotel = localHotels.find { it.id == selectedHotelId }
-    val canConfirm = checkIn.isNotBlank() && checkOut.isNotBlank() &&
-            checkInError == null && checkOutError == null && selectedHotel != null
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.assign_hotel), fontWeight = FontWeight.Bold) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = stringResource(R.string.hotel_dates_range, trip.startDate, trip.endDate),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                ExposedDropdownMenuBox(
-                    expanded = hotelDropdownExpanded,
-                    onExpandedChange = { hotelDropdownExpanded = it }
-                ) {
-                    OutlinedTextField(
-                        value = selectedHotel?.name ?: stringResource(R.string.select_hotel),
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.select_hotel)) },
-                        leadingIcon = { Icon(Icons.Default.Hotel, contentDescription = null) },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = hotelDropdownExpanded) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor(),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    ExposedDropdownMenu(
-                        expanded = hotelDropdownExpanded,
-                        onDismissRequest = { hotelDropdownExpanded = false }
-                    ) {
-                        localHotels.forEach { hotel ->
-                            DropdownMenuItem(
-                                text = {
-                                    Column {
-                                        Text(hotel.name, fontWeight = FontWeight.SemiBold)
-                                        if (hotel.address.isNotBlank()) {
-                                            Text(hotel.address, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
-                                    }
-                                },
-                                onClick = {
-                                    selectedHotelId = hotel.id
-                                    hotelDropdownExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-
-                OutlinedTextField(
-                    value = checkIn,
-                    onValueChange = { },
-                    label = { Text(stringResource(R.string.check_in_date)) },
-                    leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-                    trailingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = null,
-                            modifier = Modifier.clickable { checkInPickerDialog.show() })
-                    },
-                    isError = checkInError != null,
-                    supportingText = {
-                        when {
-                            checkInError != null -> Text(checkInError!!, color = MaterialTheme.colorScheme.error)
-                            checkIn.isBlank() -> Text(stringResource(R.string.required_field), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    },
-                    readOnly = true,
-                    enabled = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { checkInPickerDialog.show() },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = if (checkInError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
-                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-
-                OutlinedTextField(
-                    value = checkOut,
-                    onValueChange = { },
-                    label = { Text(stringResource(R.string.check_out_date)) },
-                    leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
-                    trailingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = null,
-                            modifier = Modifier.clickable { checkOutPickerDialog.show() })
-                    },
-                    isError = checkOutError != null,
-                    supportingText = {
-                        when {
-                            checkOutError != null -> Text(checkOutError!!, color = MaterialTheme.colorScheme.error)
-                            checkOut.isBlank() -> Text(stringResource(R.string.required_field), color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    },
-                    readOnly = true,
-                    enabled = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { checkOutPickerDialog.show() },
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = if (checkOutError != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
-                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledTrailingIconColor = MaterialTheme.colorScheme.primary,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-            }
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    if (!canConfirm) return@Button
-                    onConfirm(selectedHotel!!.id, selectedHotel.name, selectedHotel.address, checkIn, checkOut)
-                },
-                enabled = canConfirm
-            ) {
-                Text(stringResource(R.string.save_hotel))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        }
-    )
 }

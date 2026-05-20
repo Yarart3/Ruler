@@ -203,4 +203,18 @@
     <string name="my_hotels">My saved hotels</string>
     <string name="hotel_saved">Hotel saved to your list</string>
     <string name="nights_total">%1$d nights · €%2$.0f total</string>
+    <string name="hotel_reserved_dates_locked">This reservation keeps its own dates: %1$s – %2$s</string>
+    <string name="error_unexpected">Unexpected error</string>
+    <string name="error_trip_name_exists">A trip with this name already exists</string>
+    <string name="error_activity_date_range_with_dates">Activity date must be within trip date range (%1$s - %2$s)</string>
+    <string name="error_activity_name_exists">An activity with this name already exists in this trip</string>
+    <string name="error_hotel_already_assigned">This hotel is already assigned to another trip</string>
+    <string name="error_invalid_dates">Invalid dates</string>
+    <string name="error_hotel_dates_within_trip">Hotel stay dates must be within trip dates (%1$s – %2$s)</string>
+    <string name="error_checkin_before_checkout">Check-in must be before check-out</string>
+    <string name="error_activity_date_range">Activity date must be within trip date range</string>
+    <string name="error_all_fields_required">All fields are required</string>
+    <string name="error_trip_name_min_length">Trip name must be at least 3 characters</string>
+    <string name="error_invalid_date_format">Invalid date format (dd/MM/yyyy)</string>
+    <string name="error_start_before_end">Start date must be before end date</string>
 </resources>

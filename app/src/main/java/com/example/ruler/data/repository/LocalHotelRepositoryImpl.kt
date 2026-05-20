@@ -48,7 +48,14 @@ class LocalHotelRepositoryImpl @Inject constructor(
         ownerUserId = userId,
         nights = nights,
         pricePerNight = pricePerNight,
-        assignedTripId = assignedTripId
+        assignedTripId = assignedTripId,
+        reservationId = reservationId,
+        remoteHotelId = remoteHotelId,
+        remoteRoomId = remoteRoomId,
+        startDate = startDate,
+        endDate = endDate,
+        guestName = guestName,
+        guestEmail = guestEmail
     )
 
     private fun LocalHotelEntity.toDomain() = LocalHotel(
@@ -57,6 +64,13 @@ class LocalHotelRepositoryImpl @Inject constructor(
         address = address,
         nights = nights,
         pricePerNight = pricePerNight,
-        assignedTripId = assignedTripId
+        assignedTripId = assignedTripId,
+        reservationId = reservationId,
+        remoteHotelId = remoteHotelId,
+        remoteRoomId = remoteRoomId,
+        startDate = startDate,
+        endDate = endDate,
+        guestName = guestName,
+        guestEmail = guestEmail
     )
 }

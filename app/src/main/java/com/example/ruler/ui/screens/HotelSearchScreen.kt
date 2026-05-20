@@ -51,9 +51,21 @@ fun HotelSearchScreen(
     var cityError by remember { mutableStateOf(false) }
     var startDateError by remember { mutableStateOf(false) }
     var endDateError by remember { mutableStateOf(false) }
+    val hasActiveFilters = selectedCity.isNotBlank() && startDateApi.isNotBlank() && endDateApi.isNotBlank()
+    val shouldShowResults = hasSearched && hasActiveFilters
 
     val context = LocalContext.current
     val cal = Calendar.getInstance()
+
+    LaunchedEffect(Unit) {
+        hotelViewModel.clearSearchResults()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            hotelViewModel.clearSearchResults()
+        }
+    }
 
     val startDatePickerDialog = DatePickerDialog(
         context,
@@ -241,7 +253,7 @@ fun HotelSearchScreen(
                 }
             }
 
-            if (!uiState.isLoading && uiState.hotels.isNotEmpty()) {
+            if (!uiState.isLoading && shouldShowResults && uiState.hotels.isNotEmpty()) {
                 item {
                     Text(
                         text = stringResource(R.string.available_hotels),
@@ -254,13 +266,15 @@ fun HotelSearchScreen(
                     HotelResultCard(
                         hotel = hotel,
                         onRoomSelected = { room ->
-                            onRoomSelected(hotel, room, startDateApi, endDateApi)
+                            if (hasActiveFilters) {
+                                onRoomSelected(hotel, room, startDateApi, endDateApi)
+                            }
                         }
                     )
                 }
             }
 
-            if (hasSearched && !uiState.isLoading && uiState.hotels.isEmpty() && uiState.errorMessage == null) {
+            if (shouldShowResults && !uiState.isLoading && uiState.hotels.isEmpty() && uiState.errorMessage == null) {
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),

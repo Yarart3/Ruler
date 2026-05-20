@@ -56,6 +56,13 @@ class HotelRepositoryImpl @Inject constructor(
         if (result.isFailure) Log.e(tag, "cancelReservation: error → ${result.exceptionOrNull()?.localizedMessage}")
     }
 
+    override suspend fun cancelReservationById(reservationId: String): Result<Unit> = runCatching {
+        Log.i(tag, "cancelReservationById: reservationId=$reservationId")
+        api.cancelReservationById(reservationId)
+    }.also { result ->
+        if (result.isFailure) Log.e(tag, "cancelReservationById: error → ${result.exceptionOrNull()?.localizedMessage}")
+    }
+
     override suspend fun listReservations(guestEmail: String?): Result<List<HotelReservation>> = runCatching {
         Log.i(tag, "listReservations: guestEmail=$guestEmail")
         api.listReservations(groupId, guestEmail).toDomain(baseUrl)

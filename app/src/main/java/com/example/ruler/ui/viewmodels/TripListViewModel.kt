@@ -1,6 +1,8 @@
 package com.example.ruler.ui.viewmodels
 
+import android.content.Context
 import android.util.Log
+import com.example.ruler.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.ruler.domain.LocalHotelAssignment
@@ -9,6 +11,7 @@ import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.domain.TripRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.UUID
@@ -28,7 +31,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalCoroutinesApi::class)
 class TripListViewModel @Inject constructor(
     private val repository: TripRepository,
-    private val localHotelRepository: LocalHotelRepository
+    private val localHotelRepository: LocalHotelRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).apply {
@@ -83,7 +87,7 @@ class TripListViewModel @Inject constructor(
         // Validació de títol duplicat (T5.2)
         val titleExists = trips.value.any { it.title.trim().equals(title.trim(), ignoreCase = true) }
         if (titleExists) {
-            _errorMessage.value = "A trip with this name already exists"
+            _errorMessage.value = string(R.string.error_trip_name_exists)
             Log.e(TAG, "Error al crear viaje: nombre duplicado → '$title'")
             return
         }
@@ -106,7 +110,7 @@ class TripListViewModel @Inject constructor(
                 _tripCreatedCounter.value += 1
                 Log.i(TAG, "Viaje creado correctamente: id=${trip.id} title='${trip.title}'")
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "Unexpected error"
+                _errorMessage.value = e.message ?: string(R.string.error_unexpected)
                 Log.e(TAG, "Error al guardar viaje en BD: ${e.message}", e)
             }
         }
@@ -136,7 +140,7 @@ class TripListViewModel @Inject constructor(
             it.id != trip.id && it.title.trim().equals(trip.title.trim(), ignoreCase = true)
         }
         if (titleExists) {
-            _errorMessage.value = "A trip with this name already exists"
+            _errorMessage.value = string(R.string.error_trip_name_exists)
             Log.e(TAG, "Error al editar viaje: nombre duplicado → '${trip.title}'")
             return
         }
@@ -178,7 +182,11 @@ class TripListViewModel @Inject constructor(
                     !activityDate.after(tripEndDate)
 
             if (!isDateInRange) {
-                _errorMessage.value = "Activity date must be within trip date range (${trip?.startDate} - ${trip?.endDate})"
+                _errorMessage.value = string(
+                    R.string.error_activity_date_range_with_dates,
+                    trip?.startDate.orEmpty(),
+                    trip?.endDate.orEmpty()
+                )
                 Log.e(TAG, "Error al crear actividad: fecha=$date fuera del rango del viaje id=$tripId")
                 return@launch
             }
@@ -188,7 +196,7 @@ class TripListViewModel @Inject constructor(
                 it.title.trim().equals(title.trim(), ignoreCase = true)
             }
             if (activityTitleExists) {
-                _errorMessage.value = "An activity with this name already exists in this trip"
+                _errorMessage.value = string(R.string.error_activity_name_exists)
                 Log.e(TAG, "Error al crear actividad: nombre duplicado → '$title' en viaje id=$tripId")
                 return@launch
             }
@@ -226,30 +234,42 @@ class TripListViewModel @Inject constructor(
             // Check hotel not already assigned to a different trip
             val hotel = localHotelRepository.getHotelById(hotelId)
             if (hotel?.assignedTripId != null && hotel.assignedTripId != tripId) {
-                _errorMessage.value = "This hotel is already assigned to another trip"
+                _errorMessage.value = string(R.string.error_hotel_already_assigned)
                 return@launch
             }
 
             val trip = repository.getTripById(tripId) ?: return@launch
-            val checkInDate = parseDate(checkIn)
-            val checkOutDate = parseDate(checkOut)
+            val reservedCheckIn = hotel?.startDate?.takeIf { it.isNotBlank() }?.let(::normalizeHotelDate) ?: checkIn
+            val reservedCheckOut = hotel?.endDate?.takeIf { it.isNotBlank() }?.let(::normalizeHotelDate) ?: checkOut
+            val checkInDate = parseDate(reservedCheckIn)
+            val checkOutDate = parseDate(reservedCheckOut)
             val tripStart = parseDate(trip.startDate)
             val tripEnd = parseDate(trip.endDate)
 
             if (checkInDate == null || checkOutDate == null || tripStart == null || tripEnd == null) {
-                _errorMessage.value = "Invalid dates"
+                _errorMessage.value = string(R.string.error_invalid_dates)
                 return@launch
             }
             if (checkInDate.before(tripStart) || checkOutDate.after(tripEnd)) {
-                _errorMessage.value = "Invalid dates: must be within ${trip.startDate} – ${trip.endDate}"
+                _errorMessage.value = string(
+                    R.string.error_hotel_dates_within_trip,
+                    trip.startDate,
+                    trip.endDate
+                )
                 return@launch
             }
             if (!checkInDate.before(checkOutDate)) {
-                _errorMessage.value = "Invalid dates: check-in must be before check-out"
+                _errorMessage.value = string(R.string.error_checkin_before_checkout)
                 return@launch
             }
 
-            val newAssignment = LocalHotelAssignment(hotelId, hotelName, hotelAddress, checkIn, checkOut)
+            val newAssignment = LocalHotelAssignment(
+                hotelId = hotelId,
+                hotelName = hotelName,
+                hotelAddress = hotelAddress,
+                checkInDate = reservedCheckIn,
+                checkOutDate = reservedCheckOut
+            )
             val updatedList = trip.localHotels.toMutableList()
             val idx = updatedList.indexOfFirst { it.hotelId == hotelId }
             if (idx >= 0) updatedList[idx] = newAssignment else updatedList.add(newAssignment)
@@ -291,7 +311,7 @@ class TripListViewModel @Inject constructor(
                     !activityDate.after(tripEndDate)
 
             if (!isDateInRange) {
-                _errorMessage.value = "Activity date must be within trip date range"
+                _errorMessage.value = string(R.string.error_activity_date_range)
                 Log.e(TAG, "Error al actualizar actividad id=${activity.id}: fecha fuera del rango")
                 return@launch
             }
@@ -361,14 +381,14 @@ class TripListViewModel @Inject constructor(
         if (title.isBlank() || destination.isBlank() || startDate.isBlank() ||
             endDate.isBlank() || description.isBlank() || budget.isBlank() || emoji.isBlank()
         ) {
-            _errorMessage.value = "All fields are required"
+            _errorMessage.value = string(R.string.error_all_fields_required)
             Log.e(TAG, "Error de validación: campos obligatorios vacíos")
             return false
         }
 
         // Longitud mínima del títol (T5.2)
         if (title.trim().length < 3) {
-            _errorMessage.value = "Trip name must be at least 3 characters"
+            _errorMessage.value = string(R.string.error_trip_name_min_length)
             Log.e(TAG, "Error de validación: nombre demasiado corto → '$title'")
             return false
         }
@@ -378,13 +398,13 @@ class TripListViewModel @Inject constructor(
         val parsedEndDate = parseDate(endDate)
 
         if (parsedStartDate == null || parsedEndDate == null) {
-            _errorMessage.value = "Invalid date format (dd/MM/yyyy)"
+            _errorMessage.value = string(R.string.error_invalid_date_format)
             Log.e(TAG, "Error de validación: formato de fecha incorrecto → startDate=$startDate endDate=$endDate")
             return false
         }
 
         if (!parsedStartDate.before(parsedEndDate)) {
-            _errorMessage.value = "Start date must be before end date"
+            _errorMessage.value = string(R.string.error_start_before_end)
             Log.e(TAG, "Error de validación: fecha inicio >= fecha fin → $startDate >= $endDate")
             return false
         }
@@ -396,6 +416,17 @@ class TripListViewModel @Inject constructor(
     private fun parseDate(value: String) = runCatching {
         dateFormat.parse(value)
     }.getOrNull()
+
+    private fun normalizeHotelDate(value: String): String = runCatching {
+        if (value.contains("/")) {
+            value
+        } else {
+            val parsed = java.time.LocalDate.parse(value, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+            parsed.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        }
+    }.getOrElse { value }
+
+    private fun string(resId: Int, vararg args: Any): String = context.getString(resId, *args)
 
     companion object {
         private const val TAG = "TripListViewModel"

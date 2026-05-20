@@ -198,4 +198,18 @@
     <string name="remove_hotel">Eliminar hotel</string>
     <string name="save_hotel">Desar</string>
     <string name="hotel_dates_range">Dates del viatge: %1$s – %2$s</string>
+    <string name="hotel_reserved_dates_locked">Aquesta reserva manté les seves pròpies dates: %1$s – %2$s</string>
+    <string name="error_unexpected">Error inesperat</string>
+    <string name="error_trip_name_exists">Ja existeix un viatge amb aquest nom</string>
+    <string name="error_activity_date_range_with_dates">La data de l’activitat ha d’estar dins de les dates del viatge (%1$s - %2$s)</string>
+    <string name="error_activity_name_exists">Ja existeix una activitat amb aquest nom en aquest viatge</string>
+    <string name="error_hotel_already_assigned">Aquest hotel ja està assignat a un altre viatge</string>
+    <string name="error_invalid_dates">Dates no vàlides</string>
+    <string name="error_hotel_dates_within_trip">Les dates de l’estada de l’hotel han d’estar dins de les dates del viatge (%1$s – %2$s)</string>
+    <string name="error_checkin_before_checkout">La data d’entrada ha de ser anterior a la de sortida</string>
+    <string name="error_activity_date_range">La data de l’activitat ha d’estar dins de les dates del viatge</string>
+    <string name="error_all_fields_required">Tots els camps són obligatoris</string>
+    <string name="error_trip_name_min_length">El nom del viatge ha de tenir com a mínim 3 caràcters</string>
+    <string name="error_invalid_date_format">Format de data no vàlid (dd/MM/yyyy)</string>
+    <string name="error_start_before_end">La data d’inici ha de ser anterior a la data de fi</string>
 </resources>

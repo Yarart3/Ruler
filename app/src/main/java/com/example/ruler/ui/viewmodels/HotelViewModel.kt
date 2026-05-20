@@ -217,6 +217,14 @@ class HotelViewModel @Inject constructor(
             lastReservation = null
         )
     }
+
+    fun clearSearchResults() {
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            hotels = emptyList(),
+            errorMessage = null
+        )
+    }
 }
 
 private fun HotelReservationResult.toTrip(

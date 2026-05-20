@@ -22,6 +22,17 @@ import com.example.ruler.domain.Trip
 import com.example.ruler.ui.viewmodels.LocalHotelViewModel
 import java.util.Calendar
 
+private fun formatHotelDateForDisplay(value: String?): String {
+    if (value.isNullOrBlank()) return ""
+    return runCatching {
+        if (value.contains("/")) value
+        else {
+            val parsed = java.time.LocalDate.parse(value, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+            parsed.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+        }
+    }.getOrElse { value }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HotelsScreen(
@@ -424,11 +435,12 @@ private fun AssignToTripDialog(
 ) {
     val context = LocalContext.current
     val cal = Calendar.getInstance()
+    val hasReservedDates = !hotel.startDate.isNullOrBlank() && !hotel.endDate.isNullOrBlank()
 
     var selectedTripId by remember { mutableStateOf(trips.firstOrNull()?.id ?: "") }
     var tripDropdownExpanded by remember { mutableStateOf(false) }
-    var checkIn by remember { mutableStateOf("") }
-    var checkOut by remember { mutableStateOf("") }
+    var checkIn by remember { mutableStateOf(formatHotelDateForDisplay(hotel.startDate)) }
+    var checkOut by remember { mutableStateOf(formatHotelDateForDisplay(hotel.endDate)) }
     var checkInError by remember { mutableStateOf(false) }
     var checkOutError by remember { mutableStateOf(false) }
 
@@ -462,6 +474,18 @@ private fun AssignToTripDialog(
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+
+                if (hasReservedDates) {
+                    Text(
+                        text = stringResource(
+                            R.string.hotel_reserved_dates_locked,
+                            formatHotelDateForDisplay(hotel.startDate),
+                            formatHotelDateForDisplay(hotel.endDate)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
 
                 ExposedDropdownMenuBox(
                     expanded = tripDropdownExpanded,
@@ -510,8 +534,10 @@ private fun AssignToTripDialog(
                     label = { Text(stringResource(R.string.check_in_date)) },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     trailingIcon = {
-                        IconButton(onClick = { checkInPicker.show() }) {
-                            Icon(Icons.Default.DateRange, contentDescription = null)
+                        if (!hasReservedDates) {
+                            IconButton(onClick = { checkInPicker.show() }) {
+                                Icon(Icons.Default.DateRange, contentDescription = null)
+                            }
                         }
                     },
                     isError = checkInError,
@@ -527,8 +553,10 @@ private fun AssignToTripDialog(
                     label = { Text(stringResource(R.string.check_out_date)) },
                     leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
                     trailingIcon = {
-                        IconButton(onClick = { checkOutPicker.show() }) {
-                            Icon(Icons.Default.DateRange, contentDescription = null)
+                        if (!hasReservedDates) {
+                            IconButton(onClick = { checkOutPicker.show() }) {
+                                Icon(Icons.Default.DateRange, contentDescription = null)
+                            }
                         }
                     },
                     isError = checkOutError,

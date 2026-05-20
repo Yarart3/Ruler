@@ -319,9 +319,20 @@ class MainActivity : ComponentActivity() {
                                     defaultGuestName = userProfile?.username.orEmpty(),
                                     defaultGuestEmail = userProfile?.email.orEmpty(),
                                     onNavigateBack = { goBack("hotelSearch") },
-                                    onBookingCompleted = {
-                                        val nights = calcNights(selectedHotelStartDate, selectedHotelEndDate)
-                                        val hotelId = localHotelViewModel.addHotel(hotel.name, hotel.address, nights, room.price)
+                                    onBookingCompleted = { result ->
+                                        val hotelId = localHotelViewModel.addHotel(
+                                            name = hotel.name,
+                                            address = hotel.address,
+                                            nights = result.nights,
+                                            pricePerNight = room.price,
+                                            reservationId = result.reservation.id,
+                                            remoteHotelId = result.reservation.hotelId,
+                                            remoteRoomId = result.reservation.roomId,
+                                            startDate = result.reservation.startDate,
+                                            endDate = result.reservation.endDate,
+                                            guestName = result.reservation.guestName,
+                                            guestEmail = result.reservation.guestEmail
+                                        )
                                         val sourceTripId = hotelSearchSourceTripId
                                         backStack.removeAll { it in setOf("hotelSearch", "hotelBooking") }
                                         if (sourceTripId != null) {
@@ -414,8 +425,7 @@ class MainActivity : ComponentActivity() {
                                 navigateTo("editActivity")
                             },
                             onBrowseHotelsForTrip = {
-                                hotelSearchSourceTripId = selectedTripId
-                                navigateTo("hotelSearch")
+                                navigateTo("hotels")
                             }
                         )
                         "addActivity" -> AddActivityScreen(

@@ -15,5 +15,7 @@ interface HotelRepository {
 
     suspend fun cancelReservation(request: HotelReservationRequest): Result<Unit>
 
+    suspend fun cancelReservationById(reservationId: String): Result<Unit>
+
     suspend fun listReservations(guestEmail: String? = null): Result<List<HotelReservation>>
 }

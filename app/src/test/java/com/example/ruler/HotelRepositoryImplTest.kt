@@ -192,6 +192,15 @@ class HotelRepositoryImplTest {
     }
 
     @Test
+    fun cancelReservationById_returnsSuccessWhenRemoteCallSucceeds() = runBlocking {
+        val repository = createRepository(FakeHotelApiService())
+
+        val result = repository.cancelReservationById("ABCDEF")
+
+        assertTrue(result.isSuccess)
+    }
+
+    @Test
     fun listHotels_returnsFailureWhenRemoteCallFails() = runBlocking {
         val repository = createRepository(
             FakeHotelApiService(
@@ -271,6 +280,10 @@ private class FakeHotelApiService(
         groupId: String,
         request: HotelReservationRequestDto
     ) {
+        error?.let { throw it }
+    }
+
+    override suspend fun cancelReservationById(reservationId: String) {
         error?.let { throw it }
     }
 

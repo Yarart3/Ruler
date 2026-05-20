@@ -6,6 +6,7 @@ import com.example.ruler.data.remote.dto.HotelReservationListResponseDto
 import com.example.ruler.data.remote.dto.HotelReservationRequestDto
 import com.example.ruler.data.remote.dto.HotelReservationResultDto
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -37,6 +38,11 @@ interface HotelApiService {
     suspend fun cancelReservation(
         @Path("group_id") groupId: String,
         @Body request: HotelReservationRequestDto
+    ): Unit
+
+    @DELETE("reservations/{res_id}")
+    suspend fun cancelReservationById(
+        @Path("res_id") reservationId: String
     ): Unit
 
     @GET("hotels/{group_id}/reservations")

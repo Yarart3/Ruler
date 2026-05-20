@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.ruler.R
 import com.example.ruler.domain.Hotel
+import com.example.ruler.domain.HotelReservationResult
 import com.example.ruler.domain.HotelReservationRequest
 import com.example.ruler.domain.HotelRoom
 import com.example.ruler.ui.viewmodels.HotelViewModel
@@ -78,7 +79,7 @@ fun HotelBookingScreen(
     defaultGuestName: String,
     defaultGuestEmail: String,
     onNavigateBack: () -> Unit,
-    onBookingCompleted: () -> Unit,
+    onBookingCompleted: (HotelReservationResult) -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
@@ -94,8 +95,9 @@ fun HotelBookingScreen(
     var guestEmailError by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.lastReservation) {
-        if (uiState.lastReservation != null) {
-            onBookingCompleted()
+        val reservation = uiState.lastReservation
+        if (reservation != null) {
+            onBookingCompleted(reservation)
             hotelViewModel.clearMessages()
         }
     }

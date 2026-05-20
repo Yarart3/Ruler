@@ -24,5 +24,19 @@ data class LocalHotelEntity(
     @ColumnInfo(name = "price_per_night")
     val pricePerNight: Double = 0.0,
     @ColumnInfo(name = "assigned_trip_id")
-    val assignedTripId: String? = null
+    val assignedTripId: String? = null,
+    @ColumnInfo(name = "reservation_id")
+    val reservationId: String? = null,
+    @ColumnInfo(name = "remote_hotel_id")
+    val remoteHotelId: String? = null,
+    @ColumnInfo(name = "remote_room_id")
+    val remoteRoomId: String? = null,
+    @ColumnInfo(name = "start_date")
+    val startDate: String? = null,
+    @ColumnInfo(name = "end_date")
+    val endDate: String? = null,
+    @ColumnInfo(name = "guest_name")
+    val guestName: String? = null,
+    @ColumnInfo(name = "guest_email")
+    val guestEmail: String? = null
 )

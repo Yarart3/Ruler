@@ -18,7 +18,7 @@ import com.example.ruler.data.local.entity.UserEntity
 
 @Database(
     entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class, LocalHotelEntity::class],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @TypeConverters(DateConverters::class)
@@ -139,6 +139,18 @@ abstract class RulerDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `assigned_trip_id` TEXT")
                 database.execSQL("ALTER TABLE `trips` ADD COLUMN `local_hotels_json` TEXT NOT NULL DEFAULT '[]'")
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `reservation_id` TEXT")
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `remote_hotel_id` TEXT")
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `remote_room_id` TEXT")
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `start_date` TEXT")
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `end_date` TEXT")
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `guest_name` TEXT")
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `guest_email` TEXT")
             }
         }
     }
