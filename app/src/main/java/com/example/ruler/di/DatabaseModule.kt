@@ -7,6 +7,7 @@ import com.example.ruler.data.local.dao.AccessLogDao
 import com.example.ruler.data.local.dao.ItineraryItemDao
 import com.example.ruler.data.local.dao.LocalHotelDao
 import com.example.ruler.data.local.dao.TripDao
+import com.example.ruler.data.local.dao.TripImageDao
 import com.example.ruler.data.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -35,7 +36,8 @@ object DatabaseModule {
             RulerDatabase.MIGRATION_4_5,
             RulerDatabase.MIGRATION_5_6,
             RulerDatabase.MIGRATION_6_7,
-            RulerDatabase.MIGRATION_7_8
+            RulerDatabase.MIGRATION_7_8,
+            RulerDatabase.MIGRATION_8_9
         ).build()
     }
 
@@ -54,4 +56,7 @@ object DatabaseModule {
 
     @Provides
     fun provideLocalHotelDao(database: RulerDatabase): LocalHotelDao = database.localHotelDao()
+
+    @Provides
+    fun provideTripImageDao(database: RulerDatabase): TripImageDao = database.tripImageDao()
 }

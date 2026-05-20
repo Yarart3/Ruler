@@ -9,16 +9,18 @@ import com.example.ruler.data.local.dao.AccessLogDao
 import com.example.ruler.data.local.dao.ItineraryItemDao
 import com.example.ruler.data.local.dao.LocalHotelDao
 import com.example.ruler.data.local.dao.TripDao
+import com.example.ruler.data.local.dao.TripImageDao
 import com.example.ruler.data.local.dao.UserDao
 import com.example.ruler.data.local.entity.AccessLogEntity
 import com.example.ruler.data.local.entity.ItineraryItemEntity
 import com.example.ruler.data.local.entity.LocalHotelEntity
 import com.example.ruler.data.local.entity.TripEntity
+import com.example.ruler.data.local.entity.TripImageEntity
 import com.example.ruler.data.local.entity.UserEntity
 
 @Database(
-    entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class, LocalHotelEntity::class],
-    version = 8,
+    entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class, LocalHotelEntity::class, TripImageEntity::class],
+    version = 9,
     exportSchema = true
 )
 @TypeConverters(DateConverters::class)
@@ -32,6 +34,8 @@ abstract class RulerDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
     abstract fun localHotelDao(): LocalHotelDao
+
+    abstract fun tripImageDao(): TripImageDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -151,6 +155,25 @@ abstract class RulerDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `end_date` TEXT")
                 database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `guest_name` TEXT")
                 database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `guest_email` TEXT")
+            }
+        }
+
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `trip_images` (
+                        `image_id` TEXT NOT NULL,
+                        `trip_id` TEXT NOT NULL,
+                        `uri` TEXT NOT NULL,
+                        `added_at` INTEGER NOT NULL,
+                        PRIMARY KEY(`image_id`)
+                    )
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_trip_images_trip_id` ON `trip_images` (`trip_id`)"
+                )
             }
         }
     }

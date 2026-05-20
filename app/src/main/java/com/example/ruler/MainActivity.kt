@@ -43,6 +43,7 @@ import com.example.ruler.ui.viewmodels.AuthSessionState
 import com.example.ruler.ui.viewmodels.AuthViewModel
 import com.example.ruler.ui.viewmodels.HotelViewModel
 import com.example.ruler.ui.viewmodels.LocalHotelViewModel
+import com.example.ruler.ui.viewmodels.TripImageViewModel
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import com.example.ruler.ui.viewmodels.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -65,6 +66,7 @@ class MainActivity : ComponentActivity() {
     private val userViewModel: UserViewModel by viewModels()
     private val hotelViewModel: HotelViewModel by viewModels()
     private val localHotelViewModel: LocalHotelViewModel by viewModels()
+    private val tripImageViewModel: TripImageViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
         val lang = LocaleHelper.getSavedLanguage(newBase)
@@ -405,6 +407,7 @@ class MainActivity : ComponentActivity() {
                         }
                         "tripDetail" -> TripDetailScreen(
                             viewModel = viewModel,
+                            tripImageViewModel = tripImageViewModel,
                             tripId = selectedTripId,
                             localHotels = localHotels,
                             onNavigateBack = { goBack() },

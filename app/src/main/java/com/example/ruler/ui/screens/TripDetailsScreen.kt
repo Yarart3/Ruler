@@ -1,6 +1,9 @@
 package com.example.ruler.ui.screens
 
 import android.app.DatePickerDialog
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,16 +16,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.ruler.R
 import com.example.ruler.domain.HotelReservationDetails
 import com.example.ruler.domain.LocalHotel
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
+import com.example.ruler.domain.TripImage
+import com.example.ruler.ui.viewmodels.TripImageViewModel
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -32,6 +39,7 @@ import java.util.Locale
 @Composable
 fun TripDetailScreen(
     viewModel: TripListViewModel,
+    tripImageViewModel: TripImageViewModel,
     tripId: String,
     localHotels: List<LocalHotel> = emptyList(),
     onNavigateBack: () -> Unit,
@@ -50,13 +58,31 @@ fun TripDetailScreen(
     val trips by viewModel.trips.collectAsState()
     val activities by viewModel.activities.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val tripImages by tripImageViewModel.images.collectAsState()
     val trip = trips.find { it.id == tripId } ?: trips.firstOrNull() ?: return
     val sortedActivities = remember(activities) {
         activities.sortedWith(compareBy({ parseActivityDateTime(it) }, { it.id }))
     }
 
+    val context = LocalContext.current
+    val imagePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            uris.forEach { uri ->
+                try {
+                    context.contentResolver.takePersistableUriPermission(
+                        uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                } catch (_: SecurityException) {}
+            }
+            tripImageViewModel.addImages(tripId, uris.map { it.toString() })
+        }
+    }
+
     LaunchedEffect(tripId) {
         viewModel.selectTrip(tripId)
+        tripImageViewModel.setTripId(tripId)
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -261,12 +287,21 @@ fun TripDetailScreen(
                 }
                 2 -> {
                     item {
-                        Text(
-                            text = stringResource(R.string.gallery_hint),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(16.dp)
+                        TripGalleryHeader(
+                            imageCount = tripImages.size,
+                            onAddPhotos = { imagePicker.launch("image/*") }
                         )
+                    }
+                    if (tripImages.isEmpty()) {
+                        item { TripGalleryEmptyState() }
+                    } else {
+                        items(tripImages.chunked(3)) { rowImages ->
+                            TripGalleryRow(
+                                images = rowImages,
+                                onDeleteImage = { tripImageViewModel.deleteImage(it) }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.height(8.dp)) }
                     }
                 }
                 3 -> {
@@ -501,6 +536,111 @@ fun StatCard(modifier: Modifier, label: String, value: String, icon: String) {
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
             )
+        }
+    }
+}
+
+@Composable
+private fun TripGalleryHeader(
+    imageCount: Int,
+    onAddPhotos: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = if (imageCount > 0) stringResource(R.string.trip_photos, imageCount)
+            else stringResource(R.string.gallery),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+        Button(
+            onClick = onAddPhotos,
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(stringResource(R.string.add_photos), style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
+private fun TripGalleryEmptyState() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 24.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                Icons.Default.PhotoLibrary,
+                contentDescription = null,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            )
+            Text(
+                text = stringResource(R.string.no_photos_yet),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun TripGalleryRow(
+    images: List<TripImage>,
+    onDeleteImage: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        images.forEach { image ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(1f)
+            ) {
+                AsyncImage(
+                    model = image.uri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                IconButton(
+                    onClick = { onDeleteImage(image.id) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(28.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                            RoundedCornerShape(bottomStart = 8.dp)
+                        )
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = stringResource(R.string.delete_photo),
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+        // Fill remaining slots in the last row to keep alignment
+        repeat(3 - images.size) {
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

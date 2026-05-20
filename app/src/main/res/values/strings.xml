@@ -99,7 +99,11 @@
     <string name="adventure">Adventure</string>
     <string name="edit_profile">Edit profile</string>
     <string name="add">add</string>
-    <string name="gallery_hint">gallery_hint</string>
+    <string name="gallery_hint">Add photos to keep memories of this trip.</string>
+    <string name="add_photos">Add photos</string>
+    <string name="no_photos_yet">No photos yet. Tap \"Add photos\" to get started.</string>
+    <string name="trip_photos">%d photos</string>
+    <string name="delete_photo">Delete photo</string>
     <string name="start">Start</string>
     <string name="end">End</string>
     <string name="trip">Trip</string>
