@@ -58,5 +58,15 @@ data class TripEntity(
     @ColumnInfo(name = "hotel_guest_email")
     val hotelGuestEmail: String? = null,
     @ColumnInfo(name = "hotel_reservation_nights")
-    val hotelReservationNights: Int? = null
+    val hotelReservationNights: Int? = null,
+    @ColumnInfo(name = "local_hotel_id")
+    val localHotelId: String? = null,
+    @ColumnInfo(name = "local_hotel_name")
+    val localHotelName: String? = null,
+    @ColumnInfo(name = "local_hotel_address")
+    val localHotelAddress: String? = null,
+    @ColumnInfo(name = "local_hotel_check_in_epoch_millis")
+    val localHotelCheckInEpochMillis: Long? = null,
+    @ColumnInfo(name = "local_hotel_check_out_epoch_millis")
+    val localHotelCheckOutEpochMillis: Long? = null
 )

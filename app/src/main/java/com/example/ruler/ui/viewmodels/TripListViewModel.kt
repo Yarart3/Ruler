@@ -3,6 +3,7 @@ package com.example.ruler.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ruler.domain.LocalHotelAssignment
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.example.ruler.domain.TripRepository
@@ -210,6 +211,55 @@ class TripListViewModel @Inject constructor(
     }
 
     fun getTripById(id: String): Trip? = trips.value.find { it.id == id }
+
+    fun assignHotelToTrip(
+        tripId: String,
+        hotelId: String,
+        hotelName: String,
+        hotelAddress: String,
+        checkIn: String,
+        checkOut: String
+    ) {
+        viewModelScope.launch {
+            val trip = repository.getTripById(tripId) ?: return@launch
+            val checkInDate = parseDate(checkIn)
+            val checkOutDate = parseDate(checkOut)
+            val tripStart = parseDate(trip.startDate)
+            val tripEnd = parseDate(trip.endDate)
+
+            if (checkInDate == null || checkOutDate == null || tripStart == null || tripEnd == null) {
+                _errorMessage.value = "Invalid date format"
+                return@launch
+            }
+            if (checkInDate.before(tripStart) || checkOutDate.after(tripEnd)) {
+                _errorMessage.value = "Hotel dates must be within trip range (${trip.startDate} - ${trip.endDate})"
+                return@launch
+            }
+            if (!checkInDate.before(checkOutDate)) {
+                _errorMessage.value = "Check-in must be before check-out"
+                return@launch
+            }
+            repository.editTrip(
+                trip.copy(
+                    localHotel = LocalHotelAssignment(
+                        hotelId = hotelId,
+                        hotelName = hotelName,
+                        hotelAddress = hotelAddress,
+                        checkInDate = checkIn,
+                        checkOutDate = checkOut
+                    )
+                )
+            )
+            clearError()
+        }
+    }
+
+    fun removeHotelFromTrip(tripId: String) {
+        viewModelScope.launch {
+            val trip = repository.getTripById(tripId) ?: return@launch
+            repository.editTrip(trip.copy(localHotel = null))
+        }
+    }
 
     fun updateActivity(activity: TripActivity) {
         viewModelScope.launch {

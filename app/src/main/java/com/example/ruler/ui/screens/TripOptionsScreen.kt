@@ -28,6 +28,7 @@ fun TripOptionsScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
+    onNavigateToHotels: () -> Unit = {},
     onNavigateToEdit: (String) -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {}
 ) {
@@ -64,10 +65,10 @@ fun TripOptionsScreen(
                         label = { Text(stringResource(R.string.home), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
-                        selected = true,
-                        onClick = { onNavigateBack() },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        selected = false,
+                        onClick = { onNavigateToHotels() },
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.LocationOn
@@ -79,7 +80,7 @@ fun PreferencesScreen(
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
-    onNavigateToTrips: () -> Unit = {},
+    onNavigateToHotels: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {},
@@ -160,9 +161,9 @@ fun PreferencesScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { onNavigateToTrips() },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        onClick = { onNavigateToHotels() },
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

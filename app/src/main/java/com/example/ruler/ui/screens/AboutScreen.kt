@@ -29,7 +29,7 @@ fun AboutScreen(
     onNavigateBack: () -> Unit,
     onNavigateToTerms: () -> Unit,
     onNavigateToPreferences: () -> Unit = {},
-    onNavigateToTrips: () -> Unit = {},
+    onNavigateToHotels: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {}
 ) {
@@ -64,9 +64,9 @@ fun AboutScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { onNavigateToTrips() },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        onClick = { onNavigateToHotels() },
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

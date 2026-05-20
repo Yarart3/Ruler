@@ -182,4 +182,20 @@
     <string name="reservation_guest">Hoste: %1$s</string>
     <string name="reservation_room">Habitació: %1$s</string>
     <string name="reservation_nights">Nits: %1$d</string>
+    <string name="hotels">Hotels</string>
+    <string name="hotel_tab">Hotel</string>
+    <string name="no_hotel_assigned">No hi ha hotel assignat per a aquest viatge</string>
+    <string name="assign_hotel">Assignar hotel</string>
+    <string name="browse_hotels">Veure hotels</string>
+    <string name="hotel_name_hint">Nom de l\'hotel</string>
+    <string name="hotel_address_hint">Adreça</string>
+    <string name="add_hotel">Afegir hotel</string>
+    <string name="edit_hotel">Editar hotel</string>
+    <string name="check_in_date">Entrada</string>
+    <string name="check_out_date">Sortida</string>
+    <string name="select_hotel">Seleccionar hotel</string>
+    <string name="no_hotels">Encara no hi ha hotels. Afegeix-ne un!</string>
+    <string name="remove_hotel">Eliminar hotel</string>
+    <string name="save_hotel">Desar</string>
+    <string name="hotel_dates_range">Dates del viatge: %1$s – %2$s</string>
 </resources>

@@ -43,7 +43,7 @@ val mockPhotos = listOf(
 fun GalleryScreen(
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit,
-    onNavigateToTrips: () -> Unit = {},
+    onNavigateToHotels: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
@@ -83,9 +83,9 @@ fun GalleryScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { onNavigateToTrips() },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        onClick = { onNavigateToHotels() },
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

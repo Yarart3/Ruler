@@ -9,7 +9,16 @@ data class Trip(
     val description: String,
     val budget: String,
     val emoji: String,
-    val hotelReservation: HotelReservationDetails? = null
+    val hotelReservation: HotelReservationDetails? = null,
+    val localHotel: LocalHotelAssignment? = null
+)
+
+data class LocalHotelAssignment(
+    val hotelId: String,
+    val hotelName: String,
+    val hotelAddress: String,
+    val checkInDate: String,
+    val checkOutDate: String
 )
 
 data class HotelReservationDetails(

@@ -176,4 +176,20 @@
     <string name="reservation_guest">Huésped: %1$s</string>
     <string name="reservation_room">Habitación: %1$s</string>
     <string name="reservation_nights">Noches: %1$d</string>
+    <string name="hotels">Hoteles</string>
+    <string name="hotel_tab">Hotel</string>
+    <string name="no_hotel_assigned">Sin hotel asignado para este viaje</string>
+    <string name="assign_hotel">Asignar hotel</string>
+    <string name="browse_hotels">Ver hoteles</string>
+    <string name="hotel_name_hint">Nombre del hotel</string>
+    <string name="hotel_address_hint">Dirección</string>
+    <string name="add_hotel">Añadir hotel</string>
+    <string name="edit_hotel">Editar hotel</string>
+    <string name="check_in_date">Entrada</string>
+    <string name="check_out_date">Salida</string>
+    <string name="select_hotel">Seleccionar hotel</string>
+    <string name="no_hotels">Aún no hay hoteles. ¡Añade el primero!</string>
+    <string name="remove_hotel">Eliminar hotel</string>
+    <string name="save_hotel">Guardar</string>
+    <string name="hotel_dates_range">Fechas del viaje: %1$s – %2$s</string>
 </resources>

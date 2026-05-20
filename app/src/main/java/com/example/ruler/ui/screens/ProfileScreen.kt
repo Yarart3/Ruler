@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Hotel
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
@@ -67,7 +68,7 @@ fun ProfileScreen(
     onNavigateToHome: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
-    onNavigateToTrips: () -> Unit = {},
+    onNavigateToHotels: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {},
     onLogout: () -> Unit = {}
@@ -116,9 +117,9 @@ fun ProfileScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { onNavigateToTrips() },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        onClick = { onNavigateToHotels() },
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

@@ -33,6 +33,7 @@ fun HomeScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
+    onNavigateToHotels: () -> Unit = {},
     onNavigateToTripOptions: (Trip) -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {},
     onNavigateToHotelSearch: () -> Unit = {}
@@ -77,14 +78,9 @@ fun HomeScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = {
-                            nextTrip?.let {
-                                viewModel.selectTrip(it.id)
-                                onTripClick(it.id)
-                            }
-                        },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        onClick = { onNavigateToHotels() },
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

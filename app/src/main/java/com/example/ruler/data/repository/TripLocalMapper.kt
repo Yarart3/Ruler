@@ -3,6 +3,7 @@ package com.example.ruler.data.repository
 import com.example.ruler.data.local.entity.ItineraryItemEntity
 import com.example.ruler.data.local.entity.TripEntity
 import com.example.ruler.domain.HotelReservationDetails
+import com.example.ruler.domain.LocalHotelAssignment
 import com.example.ruler.domain.Trip
 import com.example.ruler.domain.TripActivity
 import com.google.gson.Gson
@@ -47,6 +48,15 @@ fun TripEntity.toDomain(): Trip {
                 guestEmail = hotelGuestEmail.orEmpty(),
                 nights = hotelReservationNights ?: 0
             )
+        },
+        localHotel = localHotelId?.let {
+            LocalHotelAssignment(
+                hotelId = it,
+                hotelName = localHotelName.orEmpty(),
+                hotelAddress = localHotelAddress.orEmpty(),
+                checkInDate = localHotelCheckInEpochMillis?.toLocalDate()?.format(tripDateFormatter).orEmpty(),
+                checkOutDate = localHotelCheckOutEpochMillis?.toLocalDate()?.format(tripDateFormatter).orEmpty()
+            )
         }
     )
 }
@@ -75,7 +85,12 @@ fun Trip.toEntity(ownerUserId: String): TripEntity {
         hotelRoomImageUrls = hotelReservation?.roomImageUrls?.let(::encodeStringList),
         hotelGuestName = hotelReservation?.guestName,
         hotelGuestEmail = hotelReservation?.guestEmail,
-        hotelReservationNights = hotelReservation?.nights
+        hotelReservationNights = hotelReservation?.nights,
+        localHotelId = localHotel?.hotelId,
+        localHotelName = localHotel?.hotelName,
+        localHotelAddress = localHotel?.hotelAddress,
+        localHotelCheckInEpochMillis = localHotel?.checkInDate?.let { if (it.isNotBlank()) parseDate(it) else null },
+        localHotelCheckOutEpochMillis = localHotel?.checkOutDate?.let { if (it.isNotBlank()) parseDate(it) else null }
     )
 }
 

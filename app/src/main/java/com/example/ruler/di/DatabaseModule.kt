@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.example.ruler.data.local.RulerDatabase
 import com.example.ruler.data.local.dao.AccessLogDao
 import com.example.ruler.data.local.dao.ItineraryItemDao
+import com.example.ruler.data.local.dao.LocalHotelDao
 import com.example.ruler.data.local.dao.TripDao
 import com.example.ruler.data.local.dao.UserDao
 import dagger.Module
@@ -30,7 +31,8 @@ object DatabaseModule {
         ).addMigrations(
             RulerDatabase.MIGRATION_1_2,
             RulerDatabase.MIGRATION_2_3,
-            RulerDatabase.MIGRATION_3_4
+            RulerDatabase.MIGRATION_3_4,
+            RulerDatabase.MIGRATION_4_5
         ).build()
     }
 
@@ -46,4 +48,7 @@ object DatabaseModule {
 
     @Provides
     fun provideUserDao(database: RulerDatabase): UserDao = database.userDao()
+
+    @Provides
+    fun provideLocalHotelDao(database: RulerDatabase): LocalHotelDao = database.localHotelDao()
 }

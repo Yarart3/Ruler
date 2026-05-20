@@ -83,6 +83,7 @@ fun HotelBookingScreen(
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
+    onNavigateToHotels: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {}
 ) {
@@ -133,9 +134,9 @@ fun HotelBookingScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        onClick = onNavigateToHotels,
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

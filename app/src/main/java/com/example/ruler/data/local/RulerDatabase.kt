@@ -7,16 +7,18 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.ruler.data.local.dao.AccessLogDao
 import com.example.ruler.data.local.dao.ItineraryItemDao
+import com.example.ruler.data.local.dao.LocalHotelDao
 import com.example.ruler.data.local.dao.TripDao
 import com.example.ruler.data.local.dao.UserDao
 import com.example.ruler.data.local.entity.AccessLogEntity
 import com.example.ruler.data.local.entity.ItineraryItemEntity
+import com.example.ruler.data.local.entity.LocalHotelEntity
 import com.example.ruler.data.local.entity.TripEntity
 import com.example.ruler.data.local.entity.UserEntity
 
 @Database(
-    entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class],
-    version = 4,
+    entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class, LocalHotelEntity::class],
+    version = 5,
     exportSchema = true
 )
 @TypeConverters(DateConverters::class)
@@ -28,6 +30,8 @@ abstract class RulerDatabase : RoomDatabase() {
     abstract fun itineraryItemDao(): ItineraryItemDao
 
     abstract fun userDao(): UserDao
+
+    abstract fun localHotelDao(): LocalHotelDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -97,6 +101,30 @@ abstract class RulerDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_guest_name` TEXT")
                 database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_guest_email` TEXT")
                 database.execSQL("ALTER TABLE `trips` ADD COLUMN `hotel_reservation_nights` INTEGER")
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `local_hotels` (
+                        `hotel_id` TEXT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `address` TEXT NOT NULL,
+                        `owner_user_id` TEXT NOT NULL,
+                        PRIMARY KEY(`hotel_id`)
+                    )
+                    """.trimIndent()
+                )
+                database.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_local_hotels_owner_user_id` ON `local_hotels` (`owner_user_id`)"
+                )
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `local_hotel_id` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `local_hotel_name` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `local_hotel_address` TEXT")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `local_hotel_check_in_epoch_millis` INTEGER")
+                database.execSQL("ALTER TABLE `trips` ADD COLUMN `local_hotel_check_out_epoch_millis` INTEGER")
             }
         }
     }

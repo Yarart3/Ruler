@@ -37,7 +37,7 @@ fun NewTripScreen(
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
     onNavigateToAbout: () -> Unit = {},
-    onNavigateToTrips: () -> Unit = {}
+    onNavigateToHotels: () -> Unit = {}
 ) {
     var title by remember { mutableStateOf("") }
     var destination by remember { mutableStateOf("") }
@@ -132,9 +132,9 @@ fun NewTripScreen(
                     )
                     NavigationBarItem(
                         selected = false,
-                        onClick = { onNavigateToTrips() },
-                        icon = { Icon(Icons.Default.LocationOn, contentDescription = "Trips") },
-                        label = { Text(stringResource(R.string.trips), fontSize = 13.sp) }
+                        onClick = { onNavigateToHotels() },
+                        icon = { Icon(Icons.Default.Hotel, contentDescription = "Hotels") },
+                        label = { Text(stringResource(R.string.hotels), fontSize = 13.sp) }
                     )
                     NavigationBarItem(
                         selected = false,

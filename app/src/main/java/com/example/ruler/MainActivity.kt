@@ -28,6 +28,7 @@ import com.example.ruler.ui.screens.GalleryScreen
 import com.example.ruler.ui.screens.HotelBookingScreen
 import com.example.ruler.ui.screens.HomeScreen
 import com.example.ruler.ui.screens.HotelSearchScreen
+import com.example.ruler.ui.screens.HotelsScreen
 import com.example.ruler.ui.screens.LoginScreen
 import com.example.ruler.ui.screens.NewTripScreen
 import com.example.ruler.ui.screens.PreferencesScreen
@@ -41,6 +42,7 @@ import com.example.ruler.ui.theme.RulerTheme
 import com.example.ruler.ui.viewmodels.AuthSessionState
 import com.example.ruler.ui.viewmodels.AuthViewModel
 import com.example.ruler.ui.viewmodels.HotelViewModel
+import com.example.ruler.ui.viewmodels.LocalHotelViewModel
 import com.example.ruler.ui.viewmodels.TripListViewModel
 import com.example.ruler.ui.viewmodels.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,6 +53,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: TripListViewModel by viewModels()
     private val userViewModel: UserViewModel by viewModels()
     private val hotelViewModel: HotelViewModel by viewModels()
+    private val localHotelViewModel: LocalHotelViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
         val lang = LocaleHelper.getSavedLanguage(newBase)
@@ -66,6 +69,7 @@ class MainActivity : ComponentActivity() {
             val authState by authViewModel.uiState.collectAsState()
             val trips by viewModel.trips.collectAsState()
             val userProfile by userViewModel.userProfile.collectAsState()
+            val localHotels by localHotelViewModel.hotels.collectAsState()
 
             RulerTheme(darkTheme = darkMode) {
                 var currentScreen by remember { mutableStateOf("splash") }
@@ -248,6 +252,7 @@ class MainActivity : ComponentActivity() {
                                 selectedTripId = tripId
                                 navigateTo("tripDetail")
                             },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToPreferences = { navigateTo("preferences") },
                             onNavigateToAbout = { navigateTo("about") },
@@ -258,6 +263,14 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToNewTrip = { navigateTo("newTrip") },
                             onNavigateToHotelSearch = { navigateTo("hotelSearch") }
+                        )
+                        "hotels" -> HotelsScreen(
+                            viewModel = localHotelViewModel,
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") }
                         )
                         "hotelSearch" -> HotelSearchScreen(
                             hotelViewModel = hotelViewModel,
@@ -270,6 +283,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateBack = { goBack() },
                             onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToPreferences = { navigateTo("preferences") },
@@ -294,6 +308,7 @@ class MainActivity : ComponentActivity() {
                                         navigateTo("tripDetail")
                                     },
                                     onNavigateToHome = { resetNavigation("home") },
+                                    onNavigateToHotels = { navigateTo("hotels") },
                                     onNavigateToGallery = { navigateTo("gallery") },
                                     onNavigateToProfile = { navigateTo("profile") },
                                     onNavigateToPreferences = { navigateTo("preferences") },
@@ -312,7 +327,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToPreferences = { navigateTo("preferences") },
                             onNavigateToAbout = { navigateTo("about") },
-                            onNavigateToTrips = { navigateToTripsIfAvailable() }
+                            onNavigateToHotels = { navigateTo("hotels") }
                         )
                         "editTrip" -> EditTripScreen(
                             viewModel = viewModel,
@@ -323,7 +338,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToPreferences = { navigateTo("preferences") },
                             onNavigateToAbout = { navigateTo("about") },
-                            onNavigateToTrips = { navigateToTripsIfAvailable() }
+                            onNavigateToHotels = { navigateTo("hotels") }
                         )
                         "tripOptions" -> selectedTrip?.let { trip ->
                             TripOptionsScreen(
@@ -331,6 +346,7 @@ class MainActivity : ComponentActivity() {
                                 trip = trip,
                                 onNavigateBack = { goBack() },
                                 onNavigateToHome = { resetNavigation("home") },
+                                onNavigateToHotels = { navigateTo("hotels") },
                                 onNavigateToGallery = { navigateTo("gallery") },
                                 onNavigateToProfile = { navigateTo("profile") },
                                 onNavigateToPreferences = { navigateTo("preferences") },
@@ -345,8 +361,10 @@ class MainActivity : ComponentActivity() {
                         "tripDetail" -> TripDetailScreen(
                             viewModel = viewModel,
                             tripId = selectedTripId,
+                            localHotels = localHotels,
                             onNavigateBack = { goBack() },
                             onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToPreferences = { navigateTo("preferences") },
                             onNavigateToAbout = { navigateTo("about") },
@@ -367,6 +385,7 @@ class MainActivity : ComponentActivity() {
                             tripId = selectedTripId,
                             onNavigateBack = { goBack("tripDetail") },
                             onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToPreferences = { navigateTo("preferences") },
@@ -379,6 +398,7 @@ class MainActivity : ComponentActivity() {
                                 activity = activity,
                                 onNavigateBack = { goBack("tripDetail") },
                                 onNavigateToHome = { resetNavigation("home") },
+                                onNavigateToHotels = { navigateTo("hotels") },
                                 onNavigateToGallery = { navigateTo("gallery") },
                                 onNavigateToProfile = { navigateTo("profile") },
                                 onNavigateToPreferences = { navigateTo("preferences") },
@@ -391,6 +411,7 @@ class MainActivity : ComponentActivity() {
                                 activity = activity,
                                 onNavigateBack = { goBack("tripDetail") },
                                 onNavigateToHome = { resetNavigation("home") },
+                                onNavigateToHotels = { navigateTo("hotels") },
                                 onNavigateToGallery = { navigateTo("gallery") },
                                 onNavigateToProfile = { navigateTo("profile") },
                                 onNavigateToPreferences = { navigateTo("preferences") },
@@ -401,7 +422,7 @@ class MainActivity : ComponentActivity() {
                         "gallery" -> GalleryScreen(
                             onNavigateBack = { goBack() },
                             onNavigateToHome = { resetNavigation("home") },
-                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToPreferences = { navigateTo("preferences") },
                             onNavigateToAbout = { navigateTo("about") },
                             onNavigateToProfile = { navigateTo("profile") },
@@ -412,7 +433,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = { goBack() },
                             onNavigateToHome = { resetNavigation("home") },
                             onNavigateToAbout = { navigateTo("about") },
-                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToNewTrip = { navigateTo("newTrip") },
@@ -424,7 +445,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToHome = { resetNavigation("home") },
                             onNavigateToTerms = { navigateTo("terms") },
                             onNavigateToPreferences = { navigateTo("preferences") },
-                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToNewTrip = { navigateTo("newTrip") }
@@ -440,7 +461,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToHome = { resetNavigation("home") },
                             onNavigateToPreferences = { navigateTo("preferences") },
                             onNavigateToAbout = { navigateTo("about") },
-                            onNavigateToTrips = { navigateToTripsIfAvailable() },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToNewTrip = { navigateTo("newTrip") },
                             onLogout = { authViewModel.signOut() }
@@ -451,6 +472,7 @@ class MainActivity : ComponentActivity() {
                                 selectedTripId = tripId
                                 navigateTo("tripDetail")
                             },
+                            onNavigateToHotels = { navigateTo("hotels") },
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToPreferences = { navigateTo("preferences") },
                             onNavigateToAbout = { navigateTo("about") },
