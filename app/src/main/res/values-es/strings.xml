@@ -206,4 +206,14 @@
     <string name="error_trip_name_min_length">El nombre del viaje debe tener al menos 3 caracteres</string>
     <string name="error_invalid_date_format">Formato de fecha no válido (dd/MM/yyyy)</string>
     <string name="error_start_before_end">La fecha de inicio debe ser anterior a la fecha de fin</string>
+    <string name="my_reservations">Mis reservas</string>
+    <string name="no_reservations">Todavía no hay reservas. Busca hoteles para hacer tu primera reserva.</string>
+    <string name="no_trip_assigned">Sin viaje asignado</string>
+    <string name="reservations_count">%d reservas</string>
+    <string name="nights_label">%d noches</string>
+    <string name="total_price">€%.2f total</string>
+    <string name="view_reservations">Mis reservas</string>
+    <string name="cancel_reservation_title">Cancelar reserva</string>
+    <string name="cancel_reservation_message">Esto cancelará la reserva de %1$s en la API y la eliminará de tu lista local.</string>
+    <string name="cancel_reservation_action">Cancelar reserva</string>
 </resources>

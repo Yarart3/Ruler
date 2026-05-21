@@ -212,4 +212,14 @@
     <string name="error_trip_name_min_length">El nom del viatge ha de tenir com a mínim 3 caràcters</string>
     <string name="error_invalid_date_format">Format de data no vàlid (dd/MM/yyyy)</string>
     <string name="error_start_before_end">La data d’inici ha de ser anterior a la data de fi</string>
+    <string name="my_reservations">Les meves reserves</string>
+    <string name="no_reservations">Encara no hi ha reserves. Cerca hotels per fer la primera reserva.</string>
+    <string name="no_trip_assigned">Cap viatge assignat</string>
+    <string name="reservations_count">%d reserves</string>
+    <string name="nights_label">%d nits</string>
+    <string name="total_price">€%.2f total</string>
+    <string name="view_reservations">Les meves reserves</string>
+    <string name="cancel_reservation_title">Cancel·lar reserva</string>
+    <string name="cancel_reservation_message">Això cancel·larà la reserva de %1$s a l’API i l’eliminarà de la llista local.</string>
+    <string name="cancel_reservation_action">Cancel·lar reserva</string>
 </resources>

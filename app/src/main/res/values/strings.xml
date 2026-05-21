@@ -228,4 +228,7 @@
     <string name="nights_label">%d nights</string>
     <string name="total_price">€%.2f total</string>
     <string name="view_reservations">My Reservations</string>
+    <string name="cancel_reservation_title">Cancel reservation</string>
+    <string name="cancel_reservation_message">This will cancel the reservation for %1$s remotely and remove it from your local list.</string>
+    <string name="cancel_reservation_action">Cancel reservation</string>
 </resources>

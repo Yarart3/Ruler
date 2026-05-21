@@ -35,6 +35,11 @@ private fun formatReservationDate(value: String?): String {
 fun ReservationsScreen(
     hotels: List<LocalHotel>,
     trips: List<Trip>,
+    deletingReservationId: String?,
+    errorMessage: String?,
+    successMessage: String?,
+    onDeleteReservation: (String) -> Unit,
+    onClearMessages: () -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
     onNavigateToHotels: () -> Unit = {},
@@ -44,7 +49,17 @@ fun ReservationsScreen(
     onNavigateToAbout: () -> Unit = {},
     onNavigateToNewTrip: () -> Unit = {}
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    var pendingDeletionHotel by remember { mutableStateOf<LocalHotel?>(null) }
+
+    LaunchedEffect(errorMessage, successMessage) {
+        val message = errorMessage ?: successMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(message)
+        onClearMessages()
+    }
+
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -176,15 +191,61 @@ fun ReservationsScreen(
                 }
                 items(hotels) { hotel ->
                     val associatedTrip = trips.find { it.id == hotel.assignedTripId }
-                    ReservationCard(hotel = hotel, trip = associatedTrip)
+                    ReservationCard(
+                        hotel = hotel,
+                        trip = associatedTrip,
+                        isDeleting = deletingReservationId == hotel.id,
+                        onDeleteClick = { pendingDeletionHotel = hotel }
+                    )
                 }
             }
         }
     }
+
+    pendingDeletionHotel?.let { hotel ->
+        AlertDialog(
+            onDismissRequest = {
+                if (deletingReservationId == null) pendingDeletionHotel = null
+            },
+            title = { Text(stringResource(R.string.cancel_reservation_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.cancel_reservation_message,
+                        hotel.name
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = deletingReservationId == null,
+                    onClick = {
+                        onDeleteReservation(hotel.id)
+                        pendingDeletionHotel = null
+                    }
+                ) {
+                    Text(stringResource(R.string.delete))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    enabled = deletingReservationId == null,
+                    onClick = { pendingDeletionHotel = null }
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 }
 
 @Composable
-private fun ReservationCard(hotel: LocalHotel, trip: Trip?) {
+private fun ReservationCard(
+    hotel: LocalHotel,
+    trip: Trip?,
+    isDeleting: Boolean,
+    onDeleteClick: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -366,6 +427,29 @@ private fun ReservationCard(hotel: LocalHotel, trip: Trip?) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+            }
+
+            FilledTonalButton(
+                onClick = onDeleteClick,
+                enabled = !isDeleting,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isDeleting) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                } else {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Text(stringResource(R.string.cancel_reservation_action))
             }
         }
     }

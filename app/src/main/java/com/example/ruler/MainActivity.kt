@@ -84,6 +84,7 @@ class MainActivity : ComponentActivity() {
             val trips by viewModel.trips.collectAsState()
             val userProfile by userViewModel.userProfile.collectAsState()
             val localHotels by localHotelViewModel.hotels.collectAsState()
+            val localHotelUiState by localHotelViewModel.uiState.collectAsState()
 
             RulerTheme(darkTheme = darkMode) {
                 var currentScreen by remember { mutableStateOf("splash") }
@@ -295,6 +296,11 @@ class MainActivity : ComponentActivity() {
                         "reservations" -> ReservationsScreen(
                             hotels = localHotels,
                             trips = trips,
+                            deletingReservationId = localHotelUiState.deletingHotelId,
+                            errorMessage = localHotelUiState.errorMessage,
+                            successMessage = localHotelUiState.successMessage,
+                            onDeleteReservation = localHotelViewModel::deleteHotel,
+                            onClearMessages = localHotelViewModel::clearMessages,
                             onNavigateBack = { goBack("hotels") },
                             onNavigateToHome = { resetNavigation("home") },
                             onNavigateToHotels = { navigateTo("hotels") },

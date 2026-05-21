@@ -9,13 +9,21 @@ import com.example.ruler.domain.LocalHotel
 import com.example.ruler.domain.LocalHotelRepository
 import com.example.ruler.domain.TripRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
+
+data class LocalHotelUiState(
+    val deletingHotelId: String? = null,
+    val errorMessage: String? = null,
+    val successMessage: String? = null
+)
 
 @HiltViewModel
 class LocalHotelViewModel @Inject constructor(
@@ -25,6 +33,8 @@ class LocalHotelViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val tag = "LocalHotelViewModel"
+    private val _uiState = MutableStateFlow(LocalHotelUiState())
+    val uiState: StateFlow<LocalHotelUiState> = _uiState.asStateFlow()
 
     val hotels: StateFlow<List<LocalHotel>> = repository.observeHotels()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -77,6 +87,7 @@ class LocalHotelViewModel @Inject constructor(
     fun deleteHotel(id: String) {
         viewModelScope.launch {
             val hotel = repository.getHotelById(id) ?: return@launch
+            _uiState.value = LocalHotelUiState(deletingHotelId = id)
             val reservationId = hotel.reservationId
             val cancelRequest = hotel.remoteHotelId
                 ?.takeIf { !hotel.remoteRoomId.isNullOrBlank() }
@@ -103,18 +114,35 @@ class LocalHotelViewModel @Inject constructor(
 
             if (cancelResult?.isFailure == true) {
                 Log.e(tag, "deleteHotel: remote cancellation failed for hotelId=$id", cancelResult.exceptionOrNull())
+                _uiState.value = LocalHotelUiState(
+                    errorMessage = cancelResult.exceptionOrNull()?.localizedMessage
+                        ?: "Unable to cancel reservation"
+                )
                 return@launch
             }
 
             val trips = tripRepository.observeTrips().first()
-            trips.filter { trip -> trip.localHotels.any { it.hotelId == id } }
+            trips.filter { trip ->
+                trip.localHotels.any { it.hotelId == id } ||
+                    trip.hotelReservation?.reservationId == reservationId
+            }
                 .forEach { trip ->
                     tripRepository.editTrip(
-                        trip.copy(localHotels = trip.localHotels.filter { it.hotelId != id })
+                        trip.copy(
+                            localHotels = trip.localHotels.filter { it.hotelId != id },
+                            hotelReservation = trip.hotelReservation?.takeUnless {
+                                it.reservationId == reservationId
+                            }
+                        )
                     )
                 }
 
             repository.deleteHotel(id)
+            _uiState.value = LocalHotelUiState(successMessage = "Reservation cancelled")
         }
+    }
+
+    fun clearMessages() {
+        _uiState.value = LocalHotelUiState()
     }
 }
