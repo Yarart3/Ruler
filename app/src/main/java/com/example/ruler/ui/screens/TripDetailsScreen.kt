@@ -9,8 +9,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -94,6 +100,7 @@ fun TripDetailScreen(
     }
 
     var selectedTab by remember { mutableStateOf(0) }
+    var fullScreenImageIndex by remember { mutableStateOf<Int?>(null) }
     val tabs = listOf(
         stringResource(R.string.itinerary),
         stringResource(R.string.stats),
@@ -295,10 +302,11 @@ fun TripDetailScreen(
                     if (tripImages.isEmpty()) {
                         item { TripGalleryEmptyState() }
                     } else {
-                        items(tripImages.chunked(3)) { rowImages ->
+                        itemsIndexed(tripImages.chunked(3)) { rowIndex, rowImages ->
                             TripGalleryRow(
                                 images = rowImages,
-                                onDeleteImage = { tripImageViewModel.deleteImage(it) }
+                                onDeleteImage = { tripImageViewModel.deleteImage(it) },
+                                onImageClick = { localIdx -> fullScreenImageIndex = rowIndex * 3 + localIdx }
                             )
                         }
                         item { Spacer(modifier = Modifier.height(8.dp)) }
@@ -317,6 +325,15 @@ fun TripDetailScreen(
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
+    }
+
+    fullScreenImageIndex?.let { index ->
+        TripImageFullScreenDialog(
+            images = tripImages,
+            initialIndex = index,
+            onDismiss = { fullScreenImageIndex = null },
+            onDeleteImage = { tripImageViewModel.deleteImage(it) }
+        )
     }
 
 }
@@ -599,7 +616,8 @@ private fun TripGalleryEmptyState() {
 @Composable
 private fun TripGalleryRow(
     images: List<TripImage>,
-    onDeleteImage: (String) -> Unit
+    onDeleteImage: (String) -> Unit,
+    onImageClick: (Int) -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -607,11 +625,12 @@ private fun TripGalleryRow(
             .padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        images.forEach { image ->
+        images.forEachIndexed { index, image ->
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .aspectRatio(1f)
+                    .clickable { onImageClick(index) }
             ) {
                 AsyncImage(
                     model = image.uri,
@@ -638,7 +657,6 @@ private fun TripGalleryRow(
                 }
             }
         }
-        // Fill remaining slots in the last row to keep alignment
         repeat(3 - images.size) {
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -785,6 +803,94 @@ private fun TripHotelCard(
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TripImageFullScreenDialog(
+    images: List<TripImage>,
+    initialIndex: Int,
+    onDismiss: () -> Unit,
+    onDeleteImage: (String) -> Unit
+) {
+    var currentIndex by remember { mutableStateOf(initialIndex.coerceIn(0, images.lastIndex)) }
+
+    LaunchedEffect(images.size) {
+        when {
+            images.isEmpty() -> onDismiss()
+            currentIndex >= images.size -> currentIndex = images.size - 1
+        }
+    }
+
+    val currentImage = images.getOrNull(currentIndex) ?: return
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        ) {
+            AsyncImage(
+                model = currentImage.uri,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Spacer(modifier = Modifier.size(48.dp))
+                Text(
+                    text = "${currentIndex + 1} / ${images.size}",
+                    color = Color.White,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                }
+            }
+
+            if (currentIndex > 0) {
+                IconButton(
+                    onClick = { currentIndex-- },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 8.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous", tint = Color.White)
+                }
+            }
+
+            if (currentIndex < images.lastIndex) {
+                IconButton(
+                    onClick = { currentIndex++ },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 8.dp)
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next", tint = Color.White)
+                }
+            }
+
+            IconButton(
+                onClick = { onDeleteImage(currentImage.id) },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp)
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_photo), tint = Color.White)
             }
         }
     }

@@ -44,7 +44,8 @@ fun HotelsScreen(
     onNavigateToGallery: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToPreferences: () -> Unit = {},
-    onNavigateToAbout: () -> Unit = {}
+    onNavigateToAbout: () -> Unit = {},
+    onNavigateToReservations: () -> Unit = {}
 ) {
     val hotels by viewModel.hotels.collectAsState()
     var hotelToAssign by remember { mutableStateOf<LocalHotel?>(null) }
@@ -164,12 +165,30 @@ fun HotelsScreen(
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
                 item {
-                    Text(
-                        text = stringResource(R.string.my_hotels),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.my_hotels),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(onClick = onNavigateToReservations) {
+                            Icon(
+                                Icons.Default.BookOnline,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = stringResource(R.string.view_reservations),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
                 }
                 items(hotels, key = { it.id }) { hotel ->
                     val assignedTrip = hotel.assignedTripId?.let { tid -> trips.find { it.id == tid } }

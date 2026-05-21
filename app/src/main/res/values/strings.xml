@@ -221,4 +221,11 @@
     <string name="error_trip_name_min_length">Trip name must be at least 3 characters</string>
     <string name="error_invalid_date_format">Invalid date format (dd/MM/yyyy)</string>
     <string name="error_start_before_end">Start date must be before end date</string>
+    <string name="my_reservations">My Reservations</string>
+    <string name="no_reservations">No reservations yet. Browse hotels to make your first booking.</string>
+    <string name="no_trip_assigned">No trip assigned</string>
+    <string name="reservations_count">%d reservations</string>
+    <string name="nights_label">%d nights</string>
+    <string name="total_price">€%.2f total</string>
+    <string name="view_reservations">My Reservations</string>
 </resources>

@@ -27,6 +27,7 @@ import com.example.ruler.ui.screens.ForgotPasswordScreen
 import com.example.ruler.ui.screens.GalleryScreen
 import com.example.ruler.ui.screens.HotelBookingScreen
 import com.example.ruler.ui.screens.HomeScreen
+import com.example.ruler.ui.screens.ReservationsScreen
 import com.example.ruler.ui.screens.HotelSearchScreen
 import com.example.ruler.ui.screens.HotelsScreen
 import com.example.ruler.ui.screens.LoginScreen
@@ -288,7 +289,20 @@ class MainActivity : ComponentActivity() {
                             onNavigateToGallery = { navigateTo("gallery") },
                             onNavigateToProfile = { navigateTo("profile") },
                             onNavigateToPreferences = { navigateTo("preferences") },
-                            onNavigateToAbout = { navigateTo("about") }
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToReservations = { navigateTo("reservations") }
+                        )
+                        "reservations" -> ReservationsScreen(
+                            hotels = localHotels,
+                            trips = trips,
+                            onNavigateBack = { goBack("hotels") },
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToHotels = { navigateTo("hotels") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
                         "hotelSearch" -> HotelSearchScreen(
                             hotelViewModel = hotelViewModel,
