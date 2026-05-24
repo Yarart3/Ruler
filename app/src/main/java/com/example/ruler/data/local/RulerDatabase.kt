@@ -20,7 +20,7 @@ import com.example.ruler.data.local.entity.UserEntity
 
 @Database(
     entities = [TripEntity::class, ItineraryItemEntity::class, UserEntity::class, AccessLogEntity::class, LocalHotelEntity::class, TripImageEntity::class],
-    version = 9,
+    version = 10,
     exportSchema = true
 )
 @TypeConverters(DateConverters::class)
@@ -174,6 +174,13 @@ abstract class RulerDatabase : RoomDatabase() {
                 database.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_trip_images_trip_id` ON `trip_images` (`trip_id`)"
                 )
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `hotel_image_url` TEXT")
+                database.execSQL("ALTER TABLE `local_hotels` ADD COLUMN `room_image_urls` TEXT")
             }
         }
     }

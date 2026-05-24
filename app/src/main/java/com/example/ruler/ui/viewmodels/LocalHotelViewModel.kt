@@ -50,7 +50,9 @@ class LocalHotelViewModel @Inject constructor(
         startDate: String? = null,
         endDate: String? = null,
         guestName: String? = null,
-        guestEmail: String? = null
+        guestEmail: String? = null,
+        hotelImageUrl: String? = null,
+        roomImageUrls: List<String> = emptyList()
     ): String {
         val id = UUID.randomUUID().toString()
         if (name.isBlank()) return id
@@ -68,7 +70,9 @@ class LocalHotelViewModel @Inject constructor(
                     startDate = startDate,
                     endDate = endDate,
                     guestName = guestName?.trim(),
-                    guestEmail = guestEmail?.trim()
+                    guestEmail = guestEmail?.trim(),
+                    hotelImageUrl = hotelImageUrl,
+                    roomImageUrls = roomImageUrls
                 )
             )
         }

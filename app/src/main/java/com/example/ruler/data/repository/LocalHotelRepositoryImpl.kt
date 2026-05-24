@@ -55,7 +55,9 @@ class LocalHotelRepositoryImpl @Inject constructor(
         startDate = startDate,
         endDate = endDate,
         guestName = guestName,
-        guestEmail = guestEmail
+        guestEmail = guestEmail,
+        hotelImageUrl = hotelImageUrl,
+        roomImageUrls = roomImageUrls.joinToString(",").ifEmpty { null }
     )
 
     private fun LocalHotelEntity.toDomain() = LocalHotel(
@@ -71,6 +73,8 @@ class LocalHotelRepositoryImpl @Inject constructor(
         startDate = startDate,
         endDate = endDate,
         guestName = guestName,
-        guestEmail = guestEmail
+        guestEmail = guestEmail,
+        hotelImageUrl = hotelImageUrl,
+        roomImageUrls = roomImageUrls?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
     )
 }

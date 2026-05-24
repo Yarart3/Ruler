@@ -38,5 +38,9 @@ data class LocalHotelEntity(
     @ColumnInfo(name = "guest_name")
     val guestName: String? = null,
     @ColumnInfo(name = "guest_email")
-    val guestEmail: String? = null
+    val guestEmail: String? = null,
+    @ColumnInfo(name = "hotel_image_url")
+    val hotelImageUrl: String? = null,
+    @ColumnInfo(name = "room_image_urls")
+    val roomImageUrls: String? = null
 )

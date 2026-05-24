@@ -269,10 +269,15 @@ private fun EmptyTripsState(
 
 @Composable
 fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {}) {
+    val hotelName = trip.hotelReservation?.hotelName
+        ?: trip.localHotels.firstOrNull()?.hotelName
+    val hasHotelReservation = trip.hotelReservation != null
+    val hasHotel = hotelName != null
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(if (hasHotel) 200.dp else 180.dp)
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
@@ -334,6 +339,42 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
+                if (hasHotel) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.18f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Hotel,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = if (hasHotelReservation)
+                                    stringResource(R.string.trip_hotel_badge)
+                                else
+                                    stringResource(R.string.trip_hotel_assigned),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "· $hotelName",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -341,6 +382,10 @@ fun NextTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {
 
 @Composable
 fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = {}) {
+    val hotelName = trip.hotelReservation?.hotelName
+        ?: trip.localHotels.firstOrNull()?.hotelName
+    val hasHotelReservation = trip.hotelReservation != null
+
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
@@ -373,6 +418,36 @@ fun SmallTripCard(trip: Trip, onClick: () -> Unit, onOptionsClick: () -> Unit = 
                     fontWeight = FontWeight.SemiBold)
                 Text(text = trip.startDate, style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (hotelName != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Hotel,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = if (hasHotelReservation)
+                                stringResource(R.string.trip_hotel_badge)
+                            else
+                                stringResource(R.string.trip_hotel_assigned),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "· $hotelName",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
+                }
             }
             Column(horizontalAlignment = Alignment.End) {
                 Text(text = trip.endDate, style = MaterialTheme.typography.titleMedium,

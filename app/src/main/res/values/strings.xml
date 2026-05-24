@@ -231,4 +231,6 @@
     <string name="cancel_reservation_title">Cancel reservation</string>
     <string name="cancel_reservation_message">This will cancel the reservation for %1$s remotely and remove it from your local list.</string>
     <string name="cancel_reservation_action">Cancel reservation</string>
+    <string name="trip_hotel_badge">Hotel reserved</string>
+    <string name="trip_hotel_assigned">Hotel assigned</string>
 </resources>

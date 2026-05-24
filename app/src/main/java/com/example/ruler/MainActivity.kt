@@ -353,7 +353,9 @@ class MainActivity : ComponentActivity() {
                                             startDate = result.reservation.startDate,
                                             endDate = result.reservation.endDate,
                                             guestName = result.reservation.guestName,
-                                            guestEmail = result.reservation.guestEmail
+                                            guestEmail = result.reservation.guestEmail,
+                                            hotelImageUrl = hotel.imageUrl,
+                                            roomImageUrls = room.imageUrls
                                         )
                                         val sourceTripId = hotelSearchSourceTripId
                                         backStack.removeAll { it in setOf("hotelSearch", "hotelBooking") }

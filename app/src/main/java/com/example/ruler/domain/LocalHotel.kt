@@ -13,5 +13,7 @@ data class LocalHotel(
     val startDate: String? = null,
     val endDate: String? = null,
     val guestName: String? = null,
-    val guestEmail: String? = null
+    val guestEmail: String? = null,
+    val hotelImageUrl: String? = null,
+    val roomImageUrls: List<String> = emptyList()
 )
