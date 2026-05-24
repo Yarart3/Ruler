@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TripImageDao {
 
+    @Query("SELECT * FROM trip_images ORDER BY added_at DESC")
+    fun getAllImages(): Flow<List<TripImageEntity>>
+
     @Query("SELECT * FROM trip_images WHERE trip_id = :tripId ORDER BY added_at ASC")
     fun getImagesForTrip(tripId: String): Flow<List<TripImageEntity>>
 

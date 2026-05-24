@@ -18,8 +18,9 @@ Está construida con **Kotlin + Jetpack Compose**, lo que nos permite tener una 
 
 ✅ **Planificación de itinerarios** — Crea y organiza los días de tu viaje de forma visual.  
 ✅ **Gestión de viajes** — Guarda varios viajes y accede a ellos cuando quieras.  
-✅ **Búsqueda de lugares** — Encuentra restaurantes, atracciones y puntos de interés.  
-✅ **Almacenamiento de imágenes** — Guarda fotos de tus destinos favoritos.  
+✅ **Reservas de hotel** — Busca hoteles por ciudad y fechas, consulta habitaciones y completa reservas.  
+✅ **Galería por viaje** — Guarda fotos de cada viaje y revísalas en una galería propia.  
+✅ **Persistencia local y remota** — Combina Room para datos locales y Retrofit para la API de hoteles.  
 ✅ **Preferencias de usuario** — Personaliza la app a tu gusto.  
 ✅ **Soporte multiidioma** — Disponible en varios idiomas.   
 
@@ -30,7 +31,31 @@ Está construida con **Kotlin + Jetpack Compose**, lo que nos permite tener una 
 - **Kotlin** — Lenguaje principal de desarrollo.
 - **Jetpack Compose** — Para construir la UI de forma moderna y reactiva.
 - **Navigation Component** — Para gestionar la navegación entre pantallas.
+- **Room** — Persistencia local de viajes, reservas, usuarios e imágenes.
+- **Hilt** — Inyección de dependencias.
+- **Retrofit + OkHttp** — Integración con la API REST de hoteles.
+- **Firebase Authentication** — Login, registro y gestión de sesión.
 - **Android Oreo (API 26+)** — Versión mínima elegida por su amplia compatibilidad con dispositivos actuales sin renunciar a funcionalidades modernas.
+
+---
+
+## 🧱 Arquitectura
+
+Ruler sigue una arquitectura **MVVM** con separación en capas:
+
+- `ui/screens` para las pantallas
+- `ui/viewmodels` para la lógica de presentación
+- `domain` para modelos e interfaces
+- `data` para Room, Retrofit y repositorios
+- `di` para la configuración de dependencias con Hilt
+
+En Sprint 04 esta arquitectura se amplió con:
+
+- API remota de hoteles
+- reservas persistidas localmente
+- galería multimedia por viaje
+
+La documentación detallada de arquitectura y base de datos está en [docs/design.md](docs/design.md).
 
 ---
 

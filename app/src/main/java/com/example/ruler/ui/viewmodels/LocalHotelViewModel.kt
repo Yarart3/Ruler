@@ -52,7 +52,8 @@ class LocalHotelViewModel @Inject constructor(
         guestName: String? = null,
         guestEmail: String? = null,
         hotelImageUrl: String? = null,
-        roomImageUrls: List<String> = emptyList()
+        roomImageUrls: List<String> = emptyList(),
+        onSaved: (String) -> Unit = {}
     ): String {
         val id = UUID.randomUUID().toString()
         if (name.isBlank()) return id
@@ -75,6 +76,7 @@ class LocalHotelViewModel @Inject constructor(
                     roomImageUrls = roomImageUrls
                 )
             )
+            onSaved(id)
         }
         return id
     }

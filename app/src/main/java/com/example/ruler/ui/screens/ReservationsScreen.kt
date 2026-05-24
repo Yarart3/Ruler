@@ -1,5 +1,6 @@
 package com.example.ruler.ui.screens
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -21,6 +23,7 @@ import coil.compose.AsyncImage
 import com.example.ruler.R
 import com.example.ruler.domain.LocalHotel
 import com.example.ruler.domain.Trip
+import java.util.Calendar
 
 private fun formatReservationDate(value: String?): String {
     if (value.isNullOrBlank()) return ""
@@ -36,14 +39,18 @@ private fun formatReservationDate(value: String?): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReservationsScreen(
+    title: String,
     hotels: List<LocalHotel>,
     trips: List<Trip>,
     deletingReservationId: String?,
     errorMessage: String?,
     successMessage: String?,
     onDeleteReservation: (String) -> Unit,
+    onBrowseHotels: () -> Unit,
+    onAssignHotelToTrip: (String, String, String, String, String, String) -> Unit,
+    onEditHotel: (LocalHotel) -> Unit,
     onClearMessages: () -> Unit,
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (() -> Unit)? = null,
     onNavigateToHome: () -> Unit = {},
     onNavigateToHotels: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
@@ -54,6 +61,8 @@ fun ReservationsScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingDeletionHotel by remember { mutableStateOf<LocalHotel?>(null) }
+    var hotelToAssign by remember { mutableStateOf<LocalHotel?>(null) }
+    var hotelToEdit by remember { mutableStateOf<LocalHotel?>(null) }
 
     LaunchedEffect(errorMessage, successMessage) {
         val message = errorMessage ?: successMessage ?: return@LaunchedEffect
@@ -67,14 +76,16 @@ fun ReservationsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.my_reservations),
+                        text = title,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleLarge
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    if (onNavigateBack != null) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
                     }
                 },
                 actions = {
@@ -126,7 +137,7 @@ fun ReservationsScreen(
                     )
                 }
                 FloatingActionButton(
-                    onClick = onNavigateToNewTrip,
+                    onClick = onBrowseHotels,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .offset(y = (-20).dp)
@@ -135,8 +146,8 @@ fun ReservationsScreen(
                     elevation = FloatingActionButtonDefaults.elevation(8.dp)
                 ) {
                     Icon(
-                        Icons.Default.Add,
-                        contentDescription = "New trip",
+                        Icons.Default.Search,
+                        contentDescription = "Browse hotels",
                         tint = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(28.dp)
                     )
@@ -167,7 +178,7 @@ fun ReservationsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     OutlinedButton(
-                        onClick = onNavigateToHotels,
+                        onClick = onBrowseHotels,
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
@@ -185,6 +196,12 @@ fun ReservationsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
+                    HotelActionsCard(
+                        hotelCount = hotels.size,
+                        onBrowseHotels = onBrowseHotels
+                    )
+                }
+                item {
                     Text(
                         text = stringResource(R.string.reservations_count, hotels.size),
                         style = MaterialTheme.typography.bodyMedium,
@@ -197,8 +214,11 @@ fun ReservationsScreen(
                     ReservationCard(
                         hotel = hotel,
                         trip = associatedTrip,
+                        canAssign = hotel.assignedTripId == null && trips.isNotEmpty(),
                         isDeleting = deletingReservationId == hotel.id,
-                        onDeleteClick = { pendingDeletionHotel = hotel }
+                        onDeleteClick = { pendingDeletionHotel = hotel },
+                        onAssignClick = { hotelToAssign = hotel },
+                        onEditClick = { hotelToEdit = hotel }
                     )
                 }
             }
@@ -240,14 +260,85 @@ fun ReservationsScreen(
             }
         )
     }
+
+    hotelToAssign?.let { hotel ->
+        AssignToTripDialog(
+            hotel = hotel,
+            trips = trips,
+            onConfirm = { tripId, checkIn, checkOut ->
+                onAssignHotelToTrip(hotel.id, hotel.name, hotel.address, tripId, checkIn, checkOut)
+                hotelToAssign = null
+            },
+            onDismiss = { hotelToAssign = null }
+        )
+    }
+
+    hotelToEdit?.let { hotel ->
+        EditHotelDialog(
+            hotel = hotel,
+            onConfirm = { updatedName, updatedAddress ->
+                onEditHotel(hotel.copy(name = updatedName, address = updatedAddress))
+                hotelToEdit = null
+            },
+            onDismiss = { hotelToEdit = null }
+        )
+    }
+}
+
+@Composable
+private fun HotelActionsCard(
+    hotelCount: Int,
+    onBrowseHotels: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.hotel_reservations_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = stringResource(R.string.hotel_reservations_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.82f)
+                )
+            }
+            Button(
+                onClick = onBrowseHotels,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(stringResource(R.string.browse_hotels))
+            }
+        }
+    }
 }
 
 @Composable
 private fun ReservationCard(
     hotel: LocalHotel,
     trip: Trip?,
+    canAssign: Boolean,
     isDeleting: Boolean,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onAssignClick: () -> Unit,
+    onEditClick: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -333,6 +424,18 @@ private fun ReservationCard(
                     color = if (trip != null) MaterialTheme.colorScheme.onSurface
                             else MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            if (trip == null && canAssign) {
+                FilledTonalButton(
+                    onClick = onAssignClick,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.AddCircle, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.assign_hotel))
+                }
             }
 
             // Check-in / Check-out dates
@@ -466,28 +569,261 @@ private fun ReservationCard(
                 }
             }
 
-            FilledTonalButton(
-                onClick = onDeleteClick,
-                enabled = !isDeleting,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                if (isDeleting) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                } else {
+                OutlinedButton(
+                    onClick = onEditClick,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
                     Icon(
-                        Icons.Default.Delete,
+                        Icons.Default.Edit,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.edit))
                 }
-                Text(stringResource(R.string.cancel_reservation_action))
+
+                FilledTonalButton(
+                    onClick = onDeleteClick,
+                    enabled = !isDeleting,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    if (isDeleting) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    } else {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Text(stringResource(R.string.cancel_reservation_action))
+                }
             }
         }
     }
+}
+
+@Composable
+private fun EditHotelDialog(
+    hotel: LocalHotel,
+    onConfirm: (String, String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var name by remember { mutableStateOf(hotel.name) }
+    var address by remember { mutableStateOf(hotel.address) }
+    var nameError by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.edit_hotel), fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it; nameError = false },
+                    label = { Text(stringResource(R.string.hotel_name_hint)) },
+                    leadingIcon = { Icon(Icons.Default.Hotel, contentDescription = null) },
+                    isError = nameError,
+                    supportingText = { if (nameError) Text(stringResource(R.string.required_field)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                OutlinedTextField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = { Text(stringResource(R.string.hotel_address_hint)) },
+                    leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                if (name.isBlank()) { nameError = true; return@Button }
+                onConfirm(name, address)
+            }) {
+                Text(stringResource(R.string.save_hotel))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AssignToTripDialog(
+    hotel: LocalHotel,
+    trips: List<Trip>,
+    onConfirm: (String, String, String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val cal = Calendar.getInstance()
+    val hasReservedDates = !hotel.startDate.isNullOrBlank() && !hotel.endDate.isNullOrBlank()
+
+    var selectedTripId by remember { mutableStateOf(trips.firstOrNull()?.id ?: "") }
+    var tripDropdownExpanded by remember { mutableStateOf(false) }
+    var checkIn by remember { mutableStateOf(formatReservationDate(hotel.startDate)) }
+    var checkOut by remember { mutableStateOf(formatReservationDate(hotel.endDate)) }
+    var checkInError by remember { mutableStateOf(false) }
+    var checkOutError by remember { mutableStateOf(false) }
+
+    val checkInPicker = DatePickerDialog(
+        context,
+        { _, y, m, d ->
+            checkIn = "%02d/%02d/%04d".format(d, m + 1, y)
+            checkInError = false
+        },
+        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+    )
+    val checkOutPicker = DatePickerDialog(
+        context,
+        { _, y, m, d ->
+            checkOut = "%02d/%02d/%04d".format(d, m + 1, y)
+            checkOutError = false
+        },
+        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val selectedTrip = trips.find { it.id == selectedTripId }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.assign_hotel), fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = hotel.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                if (hasReservedDates) {
+                    Text(
+                        text = stringResource(
+                            R.string.hotel_reserved_dates_locked,
+                            formatReservationDate(hotel.startDate),
+                            formatReservationDate(hotel.endDate)
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                ExposedDropdownMenuBox(
+                    expanded = tripDropdownExpanded,
+                    onExpandedChange = { tripDropdownExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedTrip?.title ?: stringResource(R.string.select_trip),
+                        onValueChange = { },
+                        readOnly = true,
+                        label = { Text(stringResource(R.string.select_trip)) },
+                        leadingIcon = { Icon(Icons.Default.FlightTakeoff, contentDescription = null) },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = tripDropdownExpanded) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor(),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    ExposedDropdownMenu(
+                        expanded = tripDropdownExpanded,
+                        onDismissRequest = { tripDropdownExpanded = false }
+                    ) {
+                        trips.forEach { trip ->
+                            DropdownMenuItem(
+                                text = {
+                                    Column {
+                                        Text(trip.title, fontWeight = FontWeight.SemiBold)
+                                        Text(
+                                            "${trip.startDate} – ${trip.endDate}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    selectedTripId = trip.id
+                                    tripDropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = checkIn,
+                    onValueChange = { },
+                    label = { Text(stringResource(R.string.check_in_date)) },
+                    leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                    trailingIcon = {
+                        if (!hasReservedDates) {
+                            IconButton(onClick = { checkInPicker.show() }) {
+                                Icon(Icons.Default.DateRange, contentDescription = null)
+                            }
+                        }
+                    },
+                    isError = checkInError,
+                    supportingText = { if (checkInError) Text(stringResource(R.string.required_field)) },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                OutlinedTextField(
+                    value = checkOut,
+                    onValueChange = { },
+                    label = { Text(stringResource(R.string.check_out_date)) },
+                    leadingIcon = { Icon(Icons.Default.DateRange, contentDescription = null) },
+                    trailingIcon = {
+                        if (!hasReservedDates) {
+                            IconButton(onClick = { checkOutPicker.show() }) {
+                                Icon(Icons.Default.DateRange, contentDescription = null)
+                            }
+                        }
+                    },
+                    isError = checkOutError,
+                    supportingText = { if (checkOutError) Text(stringResource(R.string.required_field)) },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                var hasError = false
+                if (checkIn.isBlank()) { checkInError = true; hasError = true }
+                if (checkOut.isBlank()) { checkOutError = true; hasError = true }
+                if (hasError || selectedTripId.isBlank()) return@Button
+                onConfirm(selectedTripId, checkIn, checkOut)
+            }) {
+                Text(stringResource(R.string.save_hotel))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        }
+    )
 }

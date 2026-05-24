@@ -42,6 +42,7 @@ import com.example.ruler.ui.screens.TripOptionsScreen
 import com.example.ruler.ui.theme.RulerTheme
 import com.example.ruler.ui.viewmodels.AuthSessionState
 import com.example.ruler.ui.viewmodels.AuthViewModel
+import com.example.ruler.ui.viewmodels.GalleryViewModel
 import com.example.ruler.ui.viewmodels.HotelViewModel
 import com.example.ruler.ui.viewmodels.LocalHotelViewModel
 import com.example.ruler.ui.viewmodels.TripImageViewModel
@@ -68,6 +69,7 @@ class MainActivity : ComponentActivity() {
     private val hotelViewModel: HotelViewModel by viewModels()
     private val localHotelViewModel: LocalHotelViewModel by viewModels()
     private val tripImageViewModel: TripImageViewModel by viewModels()
+    private val galleryViewModel: GalleryViewModel by viewModels()
 
     override fun attachBaseContext(newBase: Context) {
         val lang = LocaleHelper.getSavedLanguage(newBase)
@@ -99,6 +101,7 @@ class MainActivity : ComponentActivity() {
                 var selectedHotelStartDate by remember { mutableStateOf("") }
                 var selectedHotelEndDate by remember { mutableStateOf("") }
                 var hotelSearchSourceTripId by remember { mutableStateOf<String?>(null) }
+                var selectedTripDetailTab by remember { mutableStateOf(0) }
 
                 fun resetNavigation(screen: String) {
                     backStack.clear()
@@ -266,6 +269,7 @@ class MainActivity : ComponentActivity() {
                             viewModel = viewModel,
                             onTripClick = { tripId ->
                                 selectedTripId = tripId
+                                selectedTripDetailTab = 0
                                 navigateTo("tripDetail")
                             },
                             onNavigateToHotels = { navigateTo("hotels") },
@@ -279,27 +283,47 @@ class MainActivity : ComponentActivity() {
                             },
                             onNavigateToNewTrip = { navigateTo("newTrip") }
                         )
-                        "hotels" -> HotelsScreen(
-                            viewModel = localHotelViewModel,
-                            trips = trips,
-                            onBrowseHotels = { navigateTo("hotelSearch") },
-                            onAssignHotelToTrip = { hotelId, hotelName, hotelAddress, tripId, checkIn, checkOut ->
-                                viewModel.assignHotelToTrip(tripId, hotelId, hotelName, hotelAddress, checkIn, checkOut)
-                            },
-                            onNavigateToHome = { resetNavigation("home") },
-                            onNavigateToGallery = { navigateTo("gallery") },
-                            onNavigateToProfile = { navigateTo("profile") },
-                            onNavigateToPreferences = { navigateTo("preferences") },
-                            onNavigateToAbout = { navigateTo("about") },
-                            onNavigateToReservations = { navigateTo("reservations") }
-                        )
-                        "reservations" -> ReservationsScreen(
+                        "hotels" -> ReservationsScreen(
+                            title = stringResource(R.string.hotels),
                             hotels = localHotels,
                             trips = trips,
                             deletingReservationId = localHotelUiState.deletingHotelId,
                             errorMessage = localHotelUiState.errorMessage,
                             successMessage = localHotelUiState.successMessage,
                             onDeleteReservation = localHotelViewModel::deleteHotel,
+                            onBrowseHotels = {
+                                hotelSearchSourceTripId = null
+                                navigateTo("hotelSearch")
+                            },
+                            onAssignHotelToTrip = { hotelId, hotelName, hotelAddress, tripId, checkIn, checkOut ->
+                                viewModel.assignHotelToTrip(tripId, hotelId, hotelName, hotelAddress, checkIn, checkOut)
+                            },
+                            onEditHotel = localHotelViewModel::updateHotel,
+                            onClearMessages = localHotelViewModel::clearMessages,
+                            onNavigateToHome = { resetNavigation("home") },
+                            onNavigateToHotels = { navigateTo("hotels") },
+                            onNavigateToGallery = { navigateTo("gallery") },
+                            onNavigateToProfile = { navigateTo("profile") },
+                            onNavigateToPreferences = { navigateTo("preferences") },
+                            onNavigateToAbout = { navigateTo("about") },
+                            onNavigateToNewTrip = { navigateTo("newTrip") }
+                        )
+                        "reservations" -> ReservationsScreen(
+                            title = stringResource(R.string.my_reservations),
+                            hotels = localHotels,
+                            trips = trips,
+                            deletingReservationId = localHotelUiState.deletingHotelId,
+                            errorMessage = localHotelUiState.errorMessage,
+                            successMessage = localHotelUiState.successMessage,
+                            onDeleteReservation = localHotelViewModel::deleteHotel,
+                            onBrowseHotels = {
+                                hotelSearchSourceTripId = null
+                                navigateTo("hotelSearch")
+                            },
+                            onAssignHotelToTrip = { hotelId, hotelName, hotelAddress, tripId, checkIn, checkOut ->
+                                viewModel.assignHotelToTrip(tripId, hotelId, hotelName, hotelAddress, checkIn, checkOut)
+                            },
+                            onEditHotel = localHotelViewModel::updateHotel,
                             onClearMessages = localHotelViewModel::clearMessages,
                             onNavigateBack = { goBack("hotels") },
                             onNavigateToHome = { resetNavigation("home") },
@@ -338,11 +362,12 @@ class MainActivity : ComponentActivity() {
                                     room = room,
                                     startDate = selectedHotelStartDate,
                                     endDate = selectedHotelEndDate,
+                                    sourceTripId = hotelSearchSourceTripId,
                                     defaultGuestName = userProfile?.username.orEmpty(),
                                     defaultGuestEmail = userProfile?.email.orEmpty(),
                                     onNavigateBack = { goBack("hotelSearch") },
                                     onBookingCompleted = { result ->
-                                        val hotelId = localHotelViewModel.addHotel(
+                                        localHotelViewModel.addHotel(
                                             name = hotel.name,
                                             address = hotel.address,
                                             nights = result.nights,
@@ -355,20 +380,29 @@ class MainActivity : ComponentActivity() {
                                             guestName = result.reservation.guestName,
                                             guestEmail = result.reservation.guestEmail,
                                             hotelImageUrl = hotel.imageUrl,
-                                            roomImageUrls = room.imageUrls
+                                            roomImageUrls = room.imageUrls,
+                                            onSaved = { hotelId ->
+                                                backStack.removeAll { it in setOf("hotelSearch", "hotelBooking") }
+                                                val sourceTripId = hotelSearchSourceTripId
+                                                if (sourceTripId != null) {
+                                                    viewModel.assignHotelToTrip(
+                                                        sourceTripId,
+                                                        hotelId,
+                                                        hotel.name,
+                                                        hotel.address,
+                                                        apiToDisplayDate(selectedHotelStartDate),
+                                                        apiToDisplayDate(selectedHotelEndDate)
+                                                    )
+                                                    selectedTripId = sourceTripId
+                                                    selectedTripDetailTab = 0
+                                                    hotelSearchSourceTripId = null
+                                                    currentScreen = "tripDetail"
+                                                } else {
+                                                    currentScreen = "hotels"
+                                                }
+                                            }
                                         )
-                                        val sourceTripId = hotelSearchSourceTripId
-                                        backStack.removeAll { it in setOf("hotelSearch", "hotelBooking") }
-                                        if (sourceTripId != null) {
-                                            viewModel.assignHotelToTrip(
-                                                sourceTripId, hotelId, hotel.name, hotel.address,
-                                                apiToDisplayDate(selectedHotelStartDate),
-                                                apiToDisplayDate(selectedHotelEndDate)
-                                            )
-                                            selectedTripId = sourceTripId
-                                            hotelSearchSourceTripId = null
-                                            currentScreen = "tripDetail"
-                                        } else {
+                                        if (hotelSearchSourceTripId == null) {
                                             currentScreen = "hotels"
                                         }
                                     },
@@ -431,6 +465,7 @@ class MainActivity : ComponentActivity() {
                             viewModel = viewModel,
                             tripImageViewModel = tripImageViewModel,
                             tripId = selectedTripId,
+                            initialTab = selectedTripDetailTab,
                             localHotels = localHotels,
                             onNavigateBack = { goBack() },
                             onNavigateToHome = { resetNavigation("home") },
@@ -450,7 +485,8 @@ class MainActivity : ComponentActivity() {
                                 navigateTo("editActivity")
                             },
                             onBrowseHotelsForTrip = {
-                                navigateTo("hotels")
+                                hotelSearchSourceTripId = selectedTripId
+                                navigateTo("hotelSearch")
                             }
                         )
                         "addActivity" -> AddActivityScreen(
@@ -493,6 +529,12 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         "gallery" -> GalleryScreen(
+                            viewModel = galleryViewModel,
+                            onTripClick = { tripId ->
+                                selectedTripId = tripId
+                                selectedTripDetailTab = 2
+                                navigateTo("tripDetail")
+                            },
                             onNavigateBack = { goBack() },
                             onNavigateToHome = { resetNavigation("home") },
                             onNavigateToHotels = { navigateTo("hotels") },
@@ -543,6 +585,7 @@ class MainActivity : ComponentActivity() {
                             viewModel = viewModel,
                             onTripClick = { tripId ->
                                 selectedTripId = tripId
+                                selectedTripDetailTab = 0
                                 navigateTo("tripDetail")
                             },
                             onNavigateToHotels = { navigateTo("hotels") },

@@ -7,6 +7,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -40,6 +42,7 @@ import com.example.ruler.ui.viewmodels.TripListViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +50,7 @@ fun TripDetailScreen(
     viewModel: TripListViewModel,
     tripImageViewModel: TripImageViewModel,
     tripId: String,
+    initialTab: Int = 0,
     localHotels: List<LocalHotel> = emptyList(),
     onNavigateBack: () -> Unit,
     onNavigateToHome: () -> Unit = {},
@@ -99,7 +103,7 @@ fun TripDetailScreen(
         }
     }
 
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember(initialTab) { mutableStateOf(initialTab) }
     var fullScreenImageIndex by remember { mutableStateOf<Int?>(null) }
     val tabs = listOf(
         stringResource(R.string.itinerary),
@@ -815,16 +819,21 @@ private fun TripImageFullScreenDialog(
     onDismiss: () -> Unit,
     onDeleteImage: (String) -> Unit
 ) {
-    var currentIndex by remember { mutableStateOf(initialIndex.coerceIn(0, images.lastIndex)) }
+    val safeInitialIndex = initialIndex.coerceIn(0, images.lastIndex)
+    val pagerState = rememberPagerState(
+        initialPage = safeInitialIndex,
+        pageCount = { images.size }
+    )
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(images.size) {
         when {
             images.isEmpty() -> onDismiss()
-            currentIndex >= images.size -> currentIndex = images.size - 1
+            pagerState.currentPage >= images.size -> pagerState.scrollToPage(images.size - 1)
         }
     }
 
-    val currentImage = images.getOrNull(currentIndex) ?: return
+    val currentImage = images.getOrNull(pagerState.currentPage) ?: return
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -835,53 +844,59 @@ private fun TripImageFullScreenDialog(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            AsyncImage(
-                model = currentImage.uri,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit
-            )
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                AsyncImage(
+                    model = images[page].uri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+            }
 
-            Row(
+            Surface(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter)
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .align(Alignment.TopEnd)
+                    .padding(top = 20.dp, end = 16.dp),
+                shape = RoundedCornerShape(999.dp),
+                color = Color.Black.copy(alpha = 0.48f)
             ) {
-                Spacer(modifier = Modifier.size(48.dp))
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = Color.White
+                    )
+                }
+            }
+
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 20.dp),
+                shape = RoundedCornerShape(999.dp),
+                color = Color.Black.copy(alpha = 0.42f)
+            ) {
                 Text(
-                    text = "${currentIndex + 1} / ${images.size}",
+                    text = "${pagerState.currentPage + 1} / ${images.size}",
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                     color = Color.White,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
-                IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
-                }
             }
 
-            if (currentIndex > 0) {
-                IconButton(
-                    onClick = { currentIndex-- },
+            if (images.size > 1) {
+                Text(
+                    text = stringResource(R.string.gallery_swipe_hint),
                     modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 8.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Previous", tint = Color.White)
-                }
-            }
-
-            if (currentIndex < images.lastIndex) {
-                IconButton(
-                    onClick = { currentIndex++ },
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Next", tint = Color.White)
-                }
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 84.dp),
+                    color = Color.White.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
             IconButton(
@@ -889,8 +904,66 @@ private fun TripImageFullScreenDialog(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 24.dp)
+                    .background(
+                        Color.Black.copy(alpha = 0.36f),
+                        RoundedCornerShape(999.dp)
+                    )
             ) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_photo), tint = Color.White)
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.delete_photo),
+                    tint = Color.White
+                )
+            }
+
+            if (images.size > 1 && pagerState.currentPage > 0) {
+                IconButton(
+                    onClick = {
+                        if (pagerState.currentPage > 0) {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 8.dp)
+                        .background(
+                            Color.Black.copy(alpha = 0.28f),
+                            RoundedCornerShape(999.dp)
+                        )
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Previous",
+                        tint = Color.White
+                    )
+                }
+            }
+
+            if (images.size > 1 && pagerState.currentPage < images.lastIndex) {
+                IconButton(
+                    onClick = {
+                        if (pagerState.currentPage < images.lastIndex) {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 8.dp)
+                        .background(
+                            Color.Black.copy(alpha = 0.28f),
+                            RoundedCornerShape(999.dp)
+                        )
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = "Next",
+                        tint = Color.White
+                    )
+                }
             }
         }
     }

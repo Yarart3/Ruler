@@ -243,6 +243,170 @@ El UID de Firebase se usa como `user_id` en la tabla `users` y como `owner_user_
 
 ---
 
+## 🌐 Extensión Arquitectónica – Sprint 04
+
+En Sprint 04 la arquitectura MVVM se ha ampliado con una **fuente de datos remota** para hoteles y una **fuente de datos local multimedia** para galerías de viaje.
+
+### Capas implicadas
+
+| Capa | Responsabilidad |
+|------|-----------------|
+| `ui/screens` | Renderizar pantallas de búsqueda, reserva, galería y reservas |
+| `ui/viewmodels` | Orquestar estado de UI y coordinar repositorios |
+| `domain` | Modelos de dominio e interfaces de repositorio |
+| `data/remote/api` | Definición de endpoints Retrofit |
+| `data/remote/dto` | DTOs de la API de hoteles |
+| `data/remote/mapper` | Conversión DTO → dominio |
+| `data/repository` | Implementaciones concretas de repositorios |
+| `data/local` | Room, DAOs, entidades y migraciones |
+| `di` | Inyección de dependencias con Hilt |
+
+### Flujo remoto de hoteles
+
+```
+HotelSearchScreen / HotelBookingScreen
+    → HotelViewModel
+        → HotelRepository
+            → HotelRepositoryImpl
+                → HotelApiService (Retrofit)
+                    → API REST http://15.224.84.148:8090
+```
+
+### Flujo local de reservas
+
+```
+HotelBookingScreen
+    → HotelViewModel.reserveRoom(...)
+        → API remota confirma reserva
+    → LocalHotelViewModel.addHotel(...)
+        → LocalHotelRepository
+            → Room (`local_hotels`)
+    → TripListViewModel.assignHotelToTrip(...)
+        → Room (`trips`) actualiza `localHotels`
+        → si existe reserva real, también actualiza `hotelReservation`
+```
+
+### Flujo local de galería
+
+```
+TripDetailsScreen
+    → TripImageViewModel.addImages(...)
+        → TripImageRepositoryImpl
+            → copia física de imágenes a filesDir/trip_gallery/<tripId>
+            → persiste metadatos en Room (`trip_images`)
+```
+
+---
+
+## 🗄️ Esquema de Base de Datos – Sprint 04
+
+Sprint 04 amplía la base local con reservas de hotel persistidas y con una tabla de imágenes por viaje.
+
+### Tabla: `local_hotels`
+
+Almacena reservas locales y hoteles guardados por usuario.
+
+| Columna | Tipo | Restricciones | Descripción |
+|---------|------|---------------|-------------|
+| `hotel_id` | TEXT | PRIMARY KEY | UUID local del hotel/reserva |
+| `name` | TEXT | NOT NULL | Nombre del hotel |
+| `address` | TEXT | NOT NULL | Dirección del hotel |
+| `owner_user_id` | TEXT | NOT NULL, INDEX | Propietario de la reserva |
+| `nights` | INTEGER | NOT NULL | Noches reservadas |
+| `price_per_night` | REAL | NOT NULL | Precio por noche |
+| `assigned_trip_id` | TEXT | NULLABLE | Viaje al que está asignado |
+| `reservation_id` | TEXT | NULLABLE | ID remoto de la reserva |
+| `remote_hotel_id` | TEXT | NULLABLE | ID remoto del hotel |
+| `remote_room_id` | TEXT | NULLABLE | ID remoto de la habitación |
+| `start_date` | TEXT | NULLABLE | Fecha de entrada |
+| `end_date` | TEXT | NULLABLE | Fecha de salida |
+| `guest_name` | TEXT | NULLABLE | Nombre del huésped |
+| `guest_email` | TEXT | NULLABLE | Email del huésped |
+| `hotel_image_url` | TEXT | NULLABLE | Imagen principal del hotel |
+| `room_image_urls` | TEXT | NULLABLE | Lista serializada de imágenes de habitación |
+
+**Índices:** `owner_user_id`
+
+---
+
+### Tabla: `trip_images`
+
+Almacena las imágenes asociadas a cada viaje.
+
+| Columna | Tipo | Restricciones | Descripción |
+|---------|------|---------------|-------------|
+| `image_id` | TEXT | PRIMARY KEY | UUID local de la imagen |
+| `trip_id` | TEXT | NOT NULL, INDEX | Viaje al que pertenece |
+| `uri` | TEXT | NOT NULL | URI local copiada al almacenamiento interno |
+| `added_at` | INTEGER | NOT NULL | Timestamp de alta |
+
+**Índices:** `trip_id`
+
+---
+
+### Campos nuevos en `trips`
+
+La tabla `trips` conserva dos formas de reflejar hoteles:
+
+- `hotelReservation*`: datos completos de una reserva remota confirmada
+- `localHotelsJson`: lista serializada de hoteles/asignaciones asociadas al viaje
+
+Los campos `hotel_reservation_id`, `hotel_id`, `hotel_name`, `hotel_address`, `hotel_image_url`, `hotel_room_id`, `hotel_room_type`, `hotel_room_price_per_night`, `hotel_room_image_urls`, `hotel_guest_name`, `hotel_guest_email` y `hotel_reservation_nights` permiten reconstruir `Trip.hotelReservation`.
+
+El campo `local_hotels_json` permite reconstruir `Trip.localHotels`.
+
+---
+
+## 🔄 Migraciones añadidas en Sprint 04
+
+### Versión 3 → 4 (`MIGRATION_3_4`)
+
+Añade a `trips` las columnas necesarias para persistir una reserva remota completa.
+
+### Versión 4 → 5 (`MIGRATION_4_5`)
+
+Crea la tabla `local_hotels` y añade columnas legacy de hotel local en `trips`.
+
+### Versión 5 → 6 (`MIGRATION_5_6`)
+
+Añade a `local_hotels` los campos `nights` y `price_per_night`.
+
+### Versión 6 → 7 (`MIGRATION_6_7`)
+
+Añade `assigned_trip_id` a `local_hotels` y `local_hotels_json` a `trips`.
+
+### Versión 7 → 8 (`MIGRATION_7_8`)
+
+Añade a `local_hotels` la información remota de reserva: IDs, fechas y huésped.
+
+### Versión 8 → 9 (`MIGRATION_8_9`)
+
+Crea la tabla `trip_images`.
+
+### Versión 9 → 10 (`MIGRATION_9_10`)
+
+Añade a `local_hotels` las URLs de imágenes de hotel y habitación.
+
+---
+
+## 🧪 Validación y testing – Sprint 04
+
+Se han añadido tests unitarios para cubrir:
+
+| Área | Cobertura |
+|------|-----------|
+| Repositorio remoto de hoteles | Búsqueda, disponibilidad, reserva, listado y cancelación |
+| Gestión local de reservas | Borrado local + cancelación remota |
+| Asignación de reserva a viaje | Persistencia de `hotelReservation` al vincular una reserva real |
+
+Además, el estado final del sprint se ha verificado con:
+
+- `./gradlew --no-daemon :app:compileDebugKotlin`
+- `./gradlew --no-daemon testDebugUnitTest`
+- `./gradlew --no-daemon assembleDebug`
+
+---
+
 ## 🔁 Ejemplo de Flujo de Datos
 
 ### Crear un nuevo viaje
@@ -257,6 +421,22 @@ NewTripScreen
     → TripDao.observeTripsByOwner emite nueva lista
     → TripListViewModel.trips StateFlow se actualiza
     → HomeScreen se recompone automáticamente
+```
+
+### Reservar un hotel y vincularlo a un viaje
+```
+HotelSearchScreen
+    → HotelViewModel.searchAvailability(...)
+    → HotelBookingScreen
+        → HotelViewModel.reserveRoom(...)
+            → HotelRepositoryImpl.reserveRoom(...)
+                → HotelApiService.reserveRoom(...)
+    → LocalHotelViewModel.addHotel(...)
+        → LocalHotelRepositoryImpl.addHotel(...)
+            → local_hotels
+    → TripListViewModel.assignHotelToTrip(...)
+        → trips.localHotels + trips.hotelReservation
+    → HomeScreen / TripDetailsScreen muestran el resultado
 ```
 
 ### Crear una actividad (con validación de rango)

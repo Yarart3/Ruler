@@ -5,6 +5,8 @@ import android.util.Log
 import com.example.ruler.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.ruler.domain.HotelReservationDetails
+import com.example.ruler.domain.LocalHotel
 import com.example.ruler.domain.LocalHotelAssignment
 import com.example.ruler.domain.LocalHotelRepository
 import com.example.ruler.domain.Trip
@@ -274,7 +276,13 @@ class TripListViewModel @Inject constructor(
             val idx = updatedList.indexOfFirst { it.hotelId == hotelId }
             if (idx >= 0) updatedList[idx] = newAssignment else updatedList.add(newAssignment)
 
-            repository.editTrip(trip.copy(localHotels = updatedList))
+            val reservationDetails = hotel?.toReservationDetails()
+            repository.editTrip(
+                trip.copy(
+                    localHotels = updatedList,
+                    hotelReservation = reservationDetails ?: trip.hotelReservation
+                )
+            )
 
             // Mark hotel as assigned to this trip
             if (hotel != null) {
@@ -427,6 +435,29 @@ class TripListViewModel @Inject constructor(
     }.getOrElse { value }
 
     private fun string(resId: Int, vararg args: Any): String = context.getString(resId, *args)
+
+    private fun LocalHotel.toReservationDetails(): HotelReservationDetails? {
+        val reservationId = reservationId?.takeIf { it.isNotBlank() } ?: return null
+        val remoteHotelId = remoteHotelId?.takeIf { it.isNotBlank() } ?: return null
+        val remoteRoomId = remoteRoomId?.takeIf { it.isNotBlank() } ?: return null
+        val guestName = guestName?.takeIf { it.isNotBlank() } ?: return null
+        val guestEmail = guestEmail?.takeIf { it.isNotBlank() } ?: return null
+
+        return HotelReservationDetails(
+            reservationId = reservationId,
+            hotelId = remoteHotelId,
+            hotelName = name,
+            hotelAddress = address,
+            hotelImageUrl = hotelImageUrl.orEmpty(),
+            roomId = remoteRoomId,
+            roomType = "",
+            roomPricePerNight = pricePerNight,
+            roomImageUrls = roomImageUrls,
+            guestName = guestName,
+            guestEmail = guestEmail,
+            nights = nights
+        )
+    }
 
     companion object {
         private const val TAG = "TripListViewModel"

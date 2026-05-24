@@ -20,6 +20,11 @@ class TripImageRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : TripImageRepository {
 
+    override fun getAllImages(): Flow<List<TripImage>> =
+        dao.getAllImages().map { entities ->
+            entities.map { it.toDomain() }
+        }
+
     override fun getImagesForTrip(tripId: String): Flow<List<TripImage>> =
         dao.getImagesForTrip(tripId).map { entities ->
             entities.map { it.toDomain() }
